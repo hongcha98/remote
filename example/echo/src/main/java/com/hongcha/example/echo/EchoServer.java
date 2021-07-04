@@ -23,7 +23,10 @@ public class EchoServer {
             User.Demo msg1 = (User.Demo) msg.getMsg();
             System.out.println("msg1.getName() = " + msg1.getName());
             System.out.println("msg1.getAge() = " + msg1.getAge());
-            return null;
+
+            msg.setMsg(User.Demo.newBuilder().setName("1").setAge(1).build());
+
+            return msg;
         }, work);
 
         remotingServer.init();

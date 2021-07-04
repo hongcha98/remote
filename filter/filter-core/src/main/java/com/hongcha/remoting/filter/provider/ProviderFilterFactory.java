@@ -1,11 +1,11 @@
-package com.hongcha.remoting.filter;
+package com.hongcha.remoting.filter.provider;
 
 import com.hongcha.remoting.common.AbstractSpiLoad;
 import com.hongcha.remoting.common.util.ClassUtils;
 
 
-public class FilterFactory extends AbstractSpiLoad<String, Filter> {
-    private static final String FILTER_SPI = "META-INF/remoting-filter";
+public class ProviderFilterFactory extends AbstractSpiLoad<String, ProviderFilter> {
+    private static final String FILTER_SPI = "META-INF/remoting-filter-provider";
 
     @Override
     protected String getSpiRosourcesName() {
@@ -18,9 +18,9 @@ public class FilterFactory extends AbstractSpiLoad<String, Filter> {
     }
 
     @Override
-    protected Filter v(String valueStr) {
+    protected ProviderFilter v(String valueStr) {
         try {
-            return ClassUtils.instantiate(valueStr, Filter.class);
+            return ClassUtils.instantiate(valueStr, ProviderFilter.class);
         } catch (ReflectiveOperationException e) {
             throw new RuntimeException(e);
         }

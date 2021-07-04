@@ -1,4 +1,4 @@
-package com.hongcha.remoting.filter;
+package com.hongcha.remoting.filter.provider;
 
 import com.hongcha.remoting.common.dto.RequestMessage;
 import com.hongcha.remoting.common.process.RequestProcess;
@@ -8,16 +8,16 @@ import java.util.Iterator;
 import java.util.LinkedList;
 
 
-public class DefaultFilterChin implements FilterChin {
-    protected Iterator<Filter> filterIterator;
+public class DefaultProviderFilterChain implements ProviderFilterChain {
+    protected Iterator<ProviderFilter> filterIterator;
 
     protected RequestProcess requestProcess;
 
-    public DefaultFilterChin(Collection<Filter> filters, RequestProcess requestProcess) {
-        if (filters == null) {
-            filters = new LinkedList<>();
+    public DefaultProviderFilterChain(Collection<ProviderFilter> providerFilters, RequestProcess requestProcess) {
+        if (providerFilters == null) {
+            providerFilters = new LinkedList<>();
         }
-        filterIterator = filters.iterator();
+        filterIterator = providerFilters.iterator();
         this.requestProcess = requestProcess;
     }
 

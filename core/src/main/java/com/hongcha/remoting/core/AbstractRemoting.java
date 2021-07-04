@@ -1,6 +1,7 @@
 package com.hongcha.remoting.core;
 
 import com.hongcha.remoting.common.LifeCcycle;
+import com.hongcha.remoting.common.MessageFuture;
 import com.hongcha.remoting.common.Pair;
 import com.hongcha.remoting.common.dto.RequestCommon;
 import com.hongcha.remoting.common.dto.RequestMessage;
@@ -9,8 +10,10 @@ import com.hongcha.remoting.common.util.Assert;
 import com.hongcha.remoting.core.bootstrap.AbstractBootStrap;
 import com.hongcha.remoting.core.config.RemotingConfig;
 import com.hongcha.remoting.core.process.ErrorRequestProcess;
-import com.hongcha.remoting.filter.DefaultFilterChin;
-import com.hongcha.remoting.filter.FilterChin;
+import com.hongcha.remoting.filter.consumer.ConsumerFilterChain;
+import com.hongcha.remoting.filter.consumer.DefaultConsumerFilterChin;
+import com.hongcha.remoting.filter.provider.DefaultProviderFilterChain;
+import com.hongcha.remoting.filter.provider.ProviderFilterChain;
 import com.hongcha.remoting.protocol.Protocol;
 import io.netty.channel.*;
 import io.netty.channel.nio.NioEventLoopGroup;
@@ -19,7 +22,9 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.ExecutionException;
 import java.util.concurrent.atomic.AtomicInteger;
+import java.util.function.Supplier;
 
 
 public abstract class AbstractRemoting<T extends AbstractBootStrap> implements LifeCcycle {
@@ -94,20 +99,34 @@ public abstract class AbstractRemoting<T extends AbstractBootStrap> implements L
         CODE_PROCESS_MAP.put(code, new Pair(requestProcess, eventLoopGroup));
     }
 
-
-    protected CompletableFuture<RequestCommon> send(Channel channel, RequestMessage requestMessage) {
+    protected RequestCommon send(Channel channel, RequestMessage requestMessage) throws ExecutionException, InterruptedException {
         return send(channel, buildRequestCommon(requestMessage));
     }
 
-    protected CompletableFuture<RequestCommon> send(Channel channel, RequestCommon requestCommon) {
-        MessageFuture messageFuture = createAndPutMessageFuture(requestCommon);
-        ChannelFuture channelFuture = channel.writeAndFlush(requestCommon);
-        channelFuture.addListener(future -> {
-            if (!future.isSuccess()) {
-                messageFuture.getFuture().completeExceptionally(future.cause());
-            }
-        });
-        return messageFuture.getFuture();
+
+    protected RequestCommon send(Channel channel, RequestCommon requestCommon) throws ExecutionException, InterruptedException {
+        MessageFuture messageFuture = asyncSend(channel, requestCommon);
+        return messageFuture.getFuture().get();
+    }
+
+    protected MessageFuture asyncSend(Channel channel, RequestMessage requestMessage) throws ExecutionException, InterruptedException {
+        return asyncSend(channel, buildRequestCommon(requestMessage));
+    }
+
+    protected MessageFuture asyncSend(Channel channel, RequestCommon requestCommon) throws ExecutionException, InterruptedException {
+        return getConsumerFilterChin(() -> {
+            MessageFuture messageFuture = createAndPutMessageFuture(requestCommon);
+
+            ChannelFuture channelFuture = channel.writeAndFlush(requestCommon);
+
+            channelFuture.addListener((future -> {
+                if (!future.isSuccess()) {
+                    messageFuture.getFuture().completeExceptionally(channelFuture.cause());
+                }
+            }));
+
+            return messageFuture;
+        }).process(requestCommon);
     }
 
     protected void doProcess(ChannelHandlerContext ctx, RequestCommon msg) {
@@ -118,8 +137,7 @@ public abstract class AbstractRemoting<T extends AbstractBootStrap> implements L
             EventLoopGroup eventLoopGroup = requestProcessEventLoopGroupPair.getValue();
             eventLoopGroup.execute(() -> {
                 RequestMessage req = buildRequestMessage(msg);
-                FilterChin filterChin =
-                        getFilterChin(requestProcess);
+                ProviderFilterChain filterChin = getProviderFilterChin(requestProcess);
                 RequestMessage resp;
                 try {
                     resp = filterChin.process(req);
@@ -140,6 +158,7 @@ public abstract class AbstractRemoting<T extends AbstractBootStrap> implements L
 
     protected void preProcessing(ChannelHandlerContext ctx, RequestCommon msg) {
         byte direction = msg.getDirection();
+
         if (direction == 1) {
             MessageFuture messageFuture = MESSAGE_FUTURE_MAP.remove(msg.getId());
             if (messageFuture != null) {
@@ -153,6 +172,7 @@ public abstract class AbstractRemoting<T extends AbstractBootStrap> implements L
             }
 
         }
+
     }
 
     /**
@@ -234,8 +254,12 @@ public abstract class AbstractRemoting<T extends AbstractBootStrap> implements L
         return id.getAndIncrement();
     }
 
-    protected FilterChin getFilterChin(RequestProcess requestProcess) {
-        return new DefaultFilterChin(RemotingFactory.getFilterFactory().getAll(), requestProcess);
+    protected ConsumerFilterChain getConsumerFilterChin(Supplier<MessageFuture> messageFutureSupplier) {
+        return new DefaultConsumerFilterChin(RemotingFactory.getFilterConsumerFactory().getAll(), messageFutureSupplier);
+    }
+
+    protected ProviderFilterChain getProviderFilterChin(RequestProcess requestProcess) {
+        return new DefaultProviderFilterChain(RemotingFactory.getFilterProviderFactory().getAll(), requestProcess);
     }
 
     protected abstract class AbstractHandler extends SimpleChannelInboundHandler<RequestCommon> {

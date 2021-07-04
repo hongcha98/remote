@@ -1,4 +1,4 @@
-package com.hongcha.remoting.core;
+package com.hongcha.remoting.common;
 
 
 import com.hongcha.remoting.common.dto.RequestCommon;

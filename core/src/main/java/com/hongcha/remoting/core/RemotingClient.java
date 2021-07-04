@@ -10,6 +10,7 @@ import io.netty.channel.ChannelHandler;
 
 import java.net.SocketAddress;
 import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.ExecutionException;
 
 
 public class RemotingClient extends AbstractRemoting<RemotingClinetBootStrap> {
@@ -39,14 +40,14 @@ public class RemotingClient extends AbstractRemoting<RemotingClinetBootStrap> {
     }
 
 
-    public CompletableFuture<RequestCommon> send(String host, int port, RequestMessage requestMessage) throws InterruptedException {
+    public CompletableFuture<RequestCommon> send(String host, int port, RequestMessage requestMessage) throws InterruptedException, ExecutionException {
         Channel channel = remotingClinetBootStrap.connect(host, port);
-        return send(channel, requestMessage);
+        return asyncSend(channel, requestMessage).getFuture();
     }
 
-    public CompletableFuture<RequestCommon> send(SocketAddress socketAddress, RequestMessage requestMessage) throws InterruptedException {
+    public CompletableFuture<RequestCommon> send(SocketAddress socketAddress, RequestMessage requestMessage) throws InterruptedException, ExecutionException {
         Channel channel = remotingClinetBootStrap.connect(socketAddress);
-        return send(channel, requestMessage);
+        return asyncSend(channel, requestMessage).getFuture();
     }
 
 
