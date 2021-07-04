@@ -12,12 +12,12 @@ public class KryoProtocol extends AbstractProtocol {
     }
 
     @Override
-    protected byte[] duSerialization(Object o) throws Exception {
+    protected byte[] doEncode(Object o) throws Exception {
         return KryoUtil.writeToByteArray(o);
     }
 
     @Override
-    protected <T> T doDeserialization(byte[] bytes, Class<T> clazz) throws Exception {
+    protected <T> T doDecode(byte[] bytes, Class<T> clazz) throws Exception {
         return KryoUtil.readFromByteArray(bytes);
     }
 

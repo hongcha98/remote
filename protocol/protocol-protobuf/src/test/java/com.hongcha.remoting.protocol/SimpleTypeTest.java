@@ -14,7 +14,6 @@ public class SimpleTypeTest {
                 .setAge(1).build();
         Protocol protobufProtocol = new ProtobufProtocol();
         for (int i = 0; i < 500; i++) {
-
             byte[] bytes = protobufProtocol.encode(a);
             long l = System.nanoTime();
             User.Demo decode = protobufProtocol.decode(bytes, User.Demo.class);

@@ -8,12 +8,12 @@ import com.alibaba.fastjson.JSON;
 public class JSONProtocol extends AbstractProtocol {
 
     @Override
-    protected byte[] duSerialization(Object o) throws Exception {
+    protected byte[] doEncode(Object o) throws Exception {
         return JSON.toJSONBytes(o);
     }
 
     @Override
-    protected <T> T doDeserialization(byte[] bytes, Class<T> clazz) throws Exception {
+    protected <T> T doDecode(byte[] bytes, Class<T> clazz) throws Exception {
         return JSON.parseObject(bytes, clazz);
     }
 

@@ -190,8 +190,8 @@ public abstract class AbstractRemoting<T extends AbstractBootStrap> implements L
         requestCommon.setHeaders(message.getHeaders());
         Protocol protocol = RemotingFactory.getProtocolFactory().getObject(message.getProtocol());
         Assert.notNull(protocol, "protocol code " + message.getProtocol() + " not found");
-        byte[] serialization = protocol.encode(message.getMsg());
-        requestCommon.setBody(serialization);
+        byte[] encode = protocol.encode(message.getMsg());
+        requestCommon.setBody(encode);
         return requestCommon;
     }
 
@@ -207,8 +207,8 @@ public abstract class AbstractRemoting<T extends AbstractBootStrap> implements L
         requestCommon.setHeaders(oldRequestCommon.getHeaders());
         Protocol protocol = RemotingFactory.getProtocolFactory().getObject(requestCommon.getProtocol());
         Assert.notNull(protocol, "protocol code " + requestCommon.getProtocol() + " not found");
-        byte[] serialization = protocol.encode(body);
-        requestCommon.setBody(serialization);
+        byte[] encode = protocol.encode(body);
+        requestCommon.setBody(encode);
         return requestCommon;
     }
 

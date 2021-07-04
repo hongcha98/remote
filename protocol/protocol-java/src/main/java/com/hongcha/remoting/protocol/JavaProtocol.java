@@ -12,7 +12,7 @@ import java.io.ObjectOutputStream;
 public class JavaProtocol extends AbstractProtocol {
 
     @Override
-    protected byte[] duSerialization(Object o) throws Exception {
+    protected byte[] doEncode(Object o) throws Exception {
         try (ByteArrayOutputStream bos = new ByteArrayOutputStream(); ObjectOutputStream oos = new ObjectOutputStream(bos)) {
             oos.writeObject(o);
             oos.flush();
@@ -21,7 +21,7 @@ public class JavaProtocol extends AbstractProtocol {
     }
 
     @Override
-    protected <T> T doDeserialization(byte[] bytes, Class<T> clazz) throws Exception {
+    protected <T> T doDecode(byte[] bytes, Class<T> clazz) throws Exception {
         try (ByteArrayInputStream bis = new ByteArrayInputStream(bytes); ObjectInputStream ois = new ObjectInputStream(bis)) {
             return (T) ois.readObject();
         }

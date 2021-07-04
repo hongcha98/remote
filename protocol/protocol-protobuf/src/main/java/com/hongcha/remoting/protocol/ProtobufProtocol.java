@@ -11,7 +11,7 @@ public class ProtobufProtocol extends AbstractProtocol {
 
 
     @Override
-    protected byte[] duSerialization(Object o) throws Exception {
+    protected byte[] doEncode(Object o) throws Exception {
         if (o instanceof MessageLite) {
             return ((MessageLite) o).toByteArray();
         }
@@ -19,7 +19,7 @@ public class ProtobufProtocol extends AbstractProtocol {
     }
 
     @Override
-    protected <T> T doDeserialization(byte[] bytes, Class<T> clazz) throws Exception {
+    protected <T> T doDecode(byte[] bytes, Class<T> clazz) throws Exception {
         Method parse = PARSE_FROM_MAP.computeIfAbsent(clazz, c -> {
             Method parseFrom = null;
             try {
