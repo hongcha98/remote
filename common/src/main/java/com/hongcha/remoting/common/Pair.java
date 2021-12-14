@@ -1,7 +1,8 @@
 package com.hongcha.remoting.common;
 
 import com.hongcha.remoting.common.util.Assert;
-import lombok.Data;
+
+import java.util.Objects;
 
 /**
  * 描述一对
@@ -9,8 +10,6 @@ import lombok.Data;
  * @param <K>
  * @param <V>
  */
-@Data
-
 public class Pair<K, V> {
 
     private K key;
@@ -22,5 +21,26 @@ public class Pair<K, V> {
         Assert.notNull(value, "value can not be null");
         this.key = key;
         this.value = value;
+    }
+
+    public K getKey() {
+        return key;
+    }
+
+    public V getValue() {
+        return value;
+    }
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (o == null || getClass() != o.getClass()) return false;
+        Pair<?, ?> pair = (Pair<?, ?>) o;
+        return Objects.equals(key, pair.key) && Objects.equals(value, pair.value);
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hash(key, value);
     }
 }

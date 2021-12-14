@@ -1,12 +1,8 @@
 package com.hongcha.remoting.common.dto;
 
-
-import lombok.Data;
-
 import java.util.HashMap;
 import java.util.Map;
 
-@Data
 public class RequestCommon {
 
     /**
@@ -77,4 +73,60 @@ public class RequestCommon {
         return body != null ? body : new byte[0];
     }
 
+
+    public int getLength() {
+        return length;
+    }
+
+    public void setLength(int length) {
+        this.length = length;
+    }
+
+    public int getId() {
+        return id;
+    }
+
+    public void setId(int id) {
+        this.id = id;
+    }
+
+    public int getCode() {
+        return code;
+    }
+
+    public void setCode(int code) {
+        this.code = code;
+    }
+
+    public byte getProtocol() {
+        return protocol;
+    }
+
+    public void setProtocol(byte protocol) {
+        this.protocol = protocol;
+    }
+
+    public byte getDirection() {
+        return direction;
+    }
+
+    public void setDirection(byte direction) {
+        this.direction = direction;
+    }
+
+    public int getHeaderLength() {
+        return headerLength;
+    }
+
+    public void setHeaderLength(int headerLength) {
+        this.headerLength = headerLength;
+    }
+
+    public void setHeaders(Map<String, String> headers) {
+        this.headers = headers;
+    }
+
+    public void setBody(byte[] body) {
+        this.body = body;
+    }
 }

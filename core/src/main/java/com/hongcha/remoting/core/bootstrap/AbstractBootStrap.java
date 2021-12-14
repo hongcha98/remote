@@ -9,9 +9,8 @@ import com.hongcha.remoting.core.constant.Status;
 import io.netty.channel.Channel;
 import io.netty.channel.ChannelHandler;
 import io.netty.channel.ChannelInitializer;
-import lombok.Data;
 
-@Data
+
 public abstract class AbstractBootStrap implements LifeCcycle {
     protected Status status = Status.CREATE;
 
@@ -19,6 +18,10 @@ public abstract class AbstractBootStrap implements LifeCcycle {
 
     public AbstractBootStrap(RemotingConfig config) {
         this.config = config;
+    }
+
+    public Status getStatus() {
+        return status;
     }
 
     public RemotingConfig getConfig() {

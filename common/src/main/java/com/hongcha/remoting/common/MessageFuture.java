@@ -2,12 +2,11 @@ package com.hongcha.remoting.common;
 
 
 import com.hongcha.remoting.common.dto.RequestCommon;
-import lombok.Data;
 
+import java.util.Objects;
 import java.util.concurrent.CompletableFuture;
 
 
-@Data
 public class MessageFuture {
     /**
      * 请求的内容
@@ -23,4 +22,24 @@ public class MessageFuture {
         this.future = new CompletableFuture<>();
     }
 
+    public RequestCommon getRequestCommon() {
+        return requestCommon;
+    }
+
+    public CompletableFuture<RequestCommon> getFuture() {
+        return future;
+    }
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (o == null || getClass() != o.getClass()) return false;
+        MessageFuture that = (MessageFuture) o;
+        return Objects.equals(requestCommon, that.requestCommon) && Objects.equals(future, that.future);
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hash(requestCommon, future);
+    }
 }

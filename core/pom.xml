@@ -42,6 +42,34 @@
             <version>4.1.63.Final</version>
         </dependency>
 
+        <dependency>
+            <groupId>com.hongcha.remoting</groupId>
+            <artifactId>protocol-java</artifactId>
+            <version>${version}</version>
+            <scope>test</scope>
+        </dependency>
+
+        <dependency>
+            <groupId>com.hongcha.remoting</groupId>
+            <artifactId>protocol-json</artifactId>
+            <version>${version}</version>
+            <scope>test</scope>
+        </dependency>
+
+        <dependency>
+            <groupId>com.hongcha.remoting</groupId>
+            <artifactId>protocol-kryo</artifactId>
+            <version>${version}</version>
+            <scope>test</scope>
+        </dependency>
+
+        <dependency>
+            <groupId>com.hongcha.remoting</groupId>
+            <artifactId>protocol-protobuf</artifactId>
+            <version>${version}</version>
+            <scope>test</scope>
+        </dependency>
+
     </dependencies>
 
 
