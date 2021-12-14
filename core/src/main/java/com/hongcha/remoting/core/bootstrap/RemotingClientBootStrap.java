@@ -15,14 +15,14 @@ import java.net.SocketAddress;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 
-public class RemotingClinetBootStrap extends AbstractBootStrap {
+public class RemotingClientBootStrap extends AbstractBootStrap {
     Bootstrap bootstrap;
 
     EventLoopGroup boos;
 
     Map<SocketAddress, Channel> socketAddressChannelMap = new ConcurrentHashMap<>();
 
-    public RemotingClinetBootStrap(RemotingConfig config) {
+    public RemotingClientBootStrap(RemotingConfig config) {
         super(config);
     }
 

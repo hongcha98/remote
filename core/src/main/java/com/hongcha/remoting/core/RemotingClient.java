@@ -3,7 +3,7 @@ package com.hongcha.remoting.core;
 
 import com.hongcha.remoting.common.dto.RequestCommon;
 import com.hongcha.remoting.common.dto.RequestMessage;
-import com.hongcha.remoting.core.bootstrap.RemotingClinetBootStrap;
+import com.hongcha.remoting.core.bootstrap.RemotingClientBootStrap;
 import com.hongcha.remoting.core.config.RemotingConfig;
 import io.netty.channel.Channel;
 import io.netty.channel.ChannelHandler;
@@ -13,9 +13,9 @@ import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ExecutionException;
 
 
-public class RemotingClient extends AbstractRemoting<RemotingClinetBootStrap> {
+public class RemotingClient extends AbstractRemoting<RemotingClientBootStrap> {
 
-    private RemotingClinetBootStrap remotingClinetBootStrap;
+    private RemotingClientBootStrap remotingClientBootStrap;
 
     public RemotingClient(RemotingConfig config) {
         super(config);
@@ -23,11 +23,11 @@ public class RemotingClient extends AbstractRemoting<RemotingClinetBootStrap> {
 
     @Override
     public void init() throws Exception {
-        remotingClinetBootStrap = new RemotingClinetBootStrap(getConfig()) {
+        remotingClientBootStrap = new RemotingClientBootStrap(getConfig()) {
             @Override
             public ChannelHandler[] getHandlerArray() {
                 return new ChannelHandler[]{
-                        new ClinetHandler()
+                        new ClientHandler()
                 };
             }
         };
@@ -35,23 +35,23 @@ public class RemotingClient extends AbstractRemoting<RemotingClinetBootStrap> {
     }
 
     @Override
-    public RemotingClinetBootStrap getBootStrap() {
-        return remotingClinetBootStrap;
+    public RemotingClientBootStrap getBootStrap() {
+        return remotingClientBootStrap;
     }
 
 
     public CompletableFuture<RequestCommon> send(String host, int port, RequestMessage requestMessage) throws InterruptedException, ExecutionException {
-        Channel channel = remotingClinetBootStrap.connect(host, port);
+        Channel channel = remotingClientBootStrap.connect(host, port);
         return asyncSend(channel, requestMessage).getFuture();
     }
 
     public CompletableFuture<RequestCommon> send(SocketAddress socketAddress, RequestMessage requestMessage) throws InterruptedException, ExecutionException {
-        Channel channel = remotingClinetBootStrap.connect(socketAddress);
+        Channel channel = remotingClientBootStrap.connect(socketAddress);
         return asyncSend(channel, requestMessage).getFuture();
     }
 
 
-    public class ClinetHandler extends AbstractHandler {
+    public class ClientHandler extends AbstractHandler {
 
 
     }
