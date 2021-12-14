@@ -11,7 +11,6 @@ import com.hongcha.remoting.core.bootstrap.AbstractBootStrap;
 import com.hongcha.remoting.core.config.RemotingConfig;
 import com.hongcha.remoting.core.generator.AtomicIntegerIDGenerator;
 import com.hongcha.remoting.core.generator.IDGenerator;
-import com.hongcha.remoting.core.process.ErrorRequestProcess;
 import com.hongcha.remoting.filter.consumer.DefaultRequestFilterChin;
 import com.hongcha.remoting.filter.consumer.RequestFilterChain;
 import com.hongcha.remoting.filter.provider.DefaultResponseFilterChain;
@@ -49,14 +48,7 @@ public abstract class AbstractRemoting<T extends AbstractBootStrap> implements L
     @Override
     public void init() throws Exception {
         getBootStrap().init();
-        registerDefaultProcess();
     }
-
-
-    protected void registerDefaultProcess() {
-        registerProcess(500, new ErrorRequestProcess(), DEFAULT_EVENT_LOOP_GROUP);
-    }
-
 
     @Override
     public void start() throws Exception {
