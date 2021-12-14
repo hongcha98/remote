@@ -22,7 +22,6 @@ import io.netty.channel.nio.NioEventLoopGroup;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.concurrent.CompletableFuture;
-import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ExecutionException;
 import java.util.function.Supplier;
 
@@ -31,7 +30,7 @@ public abstract class AbstractRemoting<T extends AbstractBootStrap> implements L
 
     protected final Map<Integer, Pair<RequestProcess, EventLoopGroup>> CODE_PROCESS_MAP = new HashMap<>();
 
-    protected final Map<Integer, MessageFuture> MESSAGE_FUTURE_MAP = new ConcurrentHashMap<>();
+    protected final Map<Integer, MessageFuture> MESSAGE_FUTURE_MAP = new HashMap<>();
 
     private final RemotingConfig config;
 
@@ -69,6 +68,10 @@ public abstract class AbstractRemoting<T extends AbstractBootStrap> implements L
         return config;
     }
 
+    public void registerProcess(int code, RequestProcess requestProcess, EventLoopGroup eventLoopGroup) {
+        CODE_PROCESS_MAP.put(code, new Pair(requestProcess, eventLoopGroup));
+    }
+
 
     public MessageFuture createAndPutMessageFuture(RequestCommon requestCommon) {
         int id = requestCommon.getId();
@@ -77,19 +80,6 @@ public abstract class AbstractRemoting<T extends AbstractBootStrap> implements L
         return messageFuture;
     }
 
-    public MessageFuture removeId(RequestCommon requestCommon) {
-        return removeId(requestCommon.getId());
-    }
-
-
-    public MessageFuture removeId(int id) {
-        return MESSAGE_FUTURE_MAP.remove(id);
-    }
-
-
-    public void registerProcess(int code, RequestProcess requestProcess, EventLoopGroup eventLoopGroup) {
-        CODE_PROCESS_MAP.put(code, new Pair(requestProcess, eventLoopGroup));
-    }
 
     protected RequestCommon send(Channel channel, RequestMessage requestMessage) throws ExecutionException, InterruptedException {
         return send(channel, buildRequestCommon(requestMessage));
@@ -103,6 +93,7 @@ public abstract class AbstractRemoting<T extends AbstractBootStrap> implements L
 
     protected MessageFuture asyncSend(Channel channel, RequestMessage requestMessage) throws ExecutionException, InterruptedException {
         return asyncSend(channel, buildRequestCommon(requestMessage));
+
     }
 
     protected MessageFuture asyncSend(Channel channel, RequestCommon requestCommon) throws ExecutionException, InterruptedException {
@@ -128,18 +119,16 @@ public abstract class AbstractRemoting<T extends AbstractBootStrap> implements L
             RequestProcess requestProcess = requestProcessEventLoopGroupPair.getKey();
             EventLoopGroup eventLoopGroup = requestProcessEventLoopGroupPair.getValue();
             eventLoopGroup.execute(() -> {
-                RequestMessage req = buildRequestMessage(msg);
-                ResponseFilterChain filterChin = getResponseFilterChain(requestProcess);
-                RequestMessage resp;
                 try {
-                    resp = filterChin.process(req);
+                    RequestMessage req = buildRequestMessage(msg);
+                    RequestMessage resp = getResponseFilterChain(requestProcess).process(req);
                     if (resp != null) {
-                        resp.setDirection((byte) 1);
+                        resp.setDirection(true);
                         ctx.channel().writeAndFlush(buildRequestCommon(resp));
                     }
                 } catch (Throwable e) {
                     RequestCommon requestCommon = buildRequestCommon(msg, e);
-                    requestCommon.setDirection((byte) 1);
+                    requestCommon.setDirection(true);
                     ctx.channel().writeAndFlush(requestCommon);
                 }
             });
@@ -147,9 +136,7 @@ public abstract class AbstractRemoting<T extends AbstractBootStrap> implements L
     }
 
     protected void preProcess(ChannelHandlerContext ctx, RequestCommon msg) {
-        byte direction = msg.getDirection();
-
-        if (direction == 1) {
+        if (msg.isResponse()) {
             MessageFuture messageFuture = MESSAGE_FUTURE_MAP.remove(msg.getId());
             if (messageFuture != null) {
                 boolean isSuccess = msg.getCode() != 500;

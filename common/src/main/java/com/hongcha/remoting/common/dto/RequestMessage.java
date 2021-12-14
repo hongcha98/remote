@@ -40,6 +40,10 @@ public class RequestMessage<T> {
         this.direction = direction;
     }
 
+    public void setDirection(boolean response) {
+        this.direction = response ? (byte) 1 : (byte) 0;
+    }
+
     public Map<String, String> getHeaders() {
         return headers;
     }
@@ -68,5 +72,6 @@ public class RequestMessage<T> {
     public int hashCode() {
         return Objects.hash(code, protocol, direction, headers, msg);
     }
+
 }
 

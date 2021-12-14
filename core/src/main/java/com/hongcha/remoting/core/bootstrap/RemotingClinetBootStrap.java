@@ -12,15 +12,15 @@ import io.netty.channel.socket.nio.NioSocketChannel;
 import java.net.InetAddress;
 import java.net.InetSocketAddress;
 import java.net.SocketAddress;
-import java.util.HashMap;
 import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
 
 public class RemotingClinetBootStrap extends AbstractBootStrap {
     Bootstrap bootstrap;
 
     EventLoopGroup boos;
 
-    Map<SocketAddress, Channel> socketAddressChannelMap = new HashMap<>();
+    Map<SocketAddress, Channel> socketAddressChannelMap = new ConcurrentHashMap<>();
 
     public RemotingClinetBootStrap(RemotingConfig config) {
         super(config);
@@ -62,14 +62,18 @@ public class RemotingClinetBootStrap extends AbstractBootStrap {
 
 
     public Channel connect(SocketAddress remoteAddress) throws InterruptedException {
-        synchronized (this) {
-            Channel channel = socketAddressChannelMap.get(remoteAddress);
-            if (channel == null || (channel != null && !channel.isActive())) {
-                channel = doConnect(remoteAddress);
+        Channel channel = socketAddressChannelMap.get(remoteAddress);
+        if (channel == null || (channel != null && !channel.isActive())) {
+            synchronized (this) {
+                channel = socketAddressChannelMap.get(remoteAddress);
+                if (channel == null || (channel != null && !channel.isActive())) {
+                    channel = doConnect(remoteAddress);
+                    socketAddressChannelMap.put(remoteAddress, channel);
+                }
             }
-            socketAddressChannelMap.put(remoteAddress, channel);
-            return channel;
         }
+        return channel;
+
     }
 
 

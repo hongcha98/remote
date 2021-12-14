@@ -129,4 +129,13 @@ public class RequestCommon {
     public void setBody(byte[] body) {
         this.body = body;
     }
+
+    public boolean isResponse() {
+        return this.direction == (byte) 1;
+    }
+
+    public void setDirection(boolean response) {
+        this.direction = response ? (byte) 1 : (byte) 0;
+    }
+
 }
