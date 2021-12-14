@@ -14,6 +14,8 @@ import java.util.Map;
 
 @ChannelHandler.Sharable
 public class Encoder extends MessageToByteEncoder<RequestCommon> {
+    public static final Encoder INSTANCE = new Encoder();
+
 
     @Override
     protected void encode(ChannelHandlerContext ctx, RequestCommon msg, ByteBuf out) throws Exception {

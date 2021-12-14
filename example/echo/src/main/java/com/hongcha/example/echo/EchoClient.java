@@ -10,16 +10,6 @@ import java.util.Scanner;
 
 public class EchoClient {
     public static void main(String[] args) throws Exception {
-        StringBuilder preflix = new StringBuilder();
-
-
-        for (int i = 0; i < 100000; i++) {
-            preflix.append(i);
-        }
-
-        String s = preflix.toString();
-
-
         RemotingConfig config = new RemotingConfig();
         config.setPort(9999);
 
@@ -36,13 +26,13 @@ public class EchoClient {
 
         while (true) {
             User.Demo user = User.Demo.newBuilder()
-                    .setName(s + new String(scanner.nextLine().getBytes(StandardCharsets.UTF_8), StandardCharsets.UTF_8))
+                    .setName(new String(scanner.nextLine().getBytes(StandardCharsets.UTF_8), StandardCharsets.UTF_8))
                     .setAge(19).build();
 
             req.setMsg(user);
-
-
-            remotingClient.send(config.getHost(), config.getPort(), req);
+            for (int i = 0; i < 100000; i++) {
+                remotingClient.send(config.getHost(), config.getPort(), req);
+            }
         }
     }
 }

@@ -11,14 +11,14 @@ import java.util.concurrent.ExecutionException;
 import java.util.function.Supplier;
 
 
-public class DefaultConsumerFilterChin implements ConsumerFilterChain {
+public class DefaultRequestFilterChin implements RequestFilterChain {
 
-    protected Iterator<ConsumerFilter> filterIterator;
+    protected Iterator<RequestFilter> filterIterator;
 
     protected Supplier<MessageFuture> supplier;
 
 
-    public DefaultConsumerFilterChin(Collection<ConsumerFilter> providerFilters, Supplier<MessageFuture> supplier) {
+    public DefaultRequestFilterChin(Collection<RequestFilter> providerFilters, Supplier<MessageFuture> supplier) {
         if (providerFilters == null) {
             providerFilters = new LinkedList<>();
         }

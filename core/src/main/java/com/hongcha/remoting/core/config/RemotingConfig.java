@@ -24,7 +24,7 @@ public class RemotingConfig {
     private int workThreadNum = 8;
 
 
-    private int backlog = 1024 * 1024 * 10;
+    private int backlog = 100;
 
 
 }

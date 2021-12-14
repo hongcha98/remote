@@ -16,17 +16,15 @@ public class EchoServer {
             String m = (String) msg.getMsg();
             System.out.println(m);
             msg.setMsg("clent hello world");
-            return msg;
+            return null;
         }, work);
 
         remotingServer.registerProcess(1, msg -> {
             User.Demo msg1 = (User.Demo) msg.getMsg();
             System.out.println("msg1.getName() = " + msg1.getName());
             System.out.println("msg1.getAge() = " + msg1.getAge());
-
-            msg.setMsg(User.Demo.newBuilder().setName("1").setAge(1).build());
-
-            return msg;
+//            msg.setMsg(User.Demo.newBuilder().setName("1").setAge(1).build());
+            return null;
         }, work);
 
         remotingServer.init();

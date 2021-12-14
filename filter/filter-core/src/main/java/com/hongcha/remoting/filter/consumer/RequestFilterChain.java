@@ -6,7 +6,7 @@ import com.hongcha.remoting.common.dto.RequestCommon;
 
 import java.util.concurrent.ExecutionException;
 
-public interface ConsumerFilterChain {
+public interface RequestFilterChain {
     /**
      * 继续下一个过滤器处理
      *

@@ -9,11 +9,13 @@ import com.hongcha.remoting.common.process.RequestProcess;
 import com.hongcha.remoting.common.util.Assert;
 import com.hongcha.remoting.core.bootstrap.AbstractBootStrap;
 import com.hongcha.remoting.core.config.RemotingConfig;
+import com.hongcha.remoting.core.generator.AtomicIntegerIDGenerator;
+import com.hongcha.remoting.core.generator.IDGenerator;
 import com.hongcha.remoting.core.process.ErrorRequestProcess;
-import com.hongcha.remoting.filter.consumer.ConsumerFilterChain;
-import com.hongcha.remoting.filter.consumer.DefaultConsumerFilterChin;
-import com.hongcha.remoting.filter.provider.DefaultProviderFilterChain;
-import com.hongcha.remoting.filter.provider.ProviderFilterChain;
+import com.hongcha.remoting.filter.consumer.DefaultRequestFilterChin;
+import com.hongcha.remoting.filter.consumer.RequestFilterChain;
+import com.hongcha.remoting.filter.provider.DefaultResponseFilterChain;
+import com.hongcha.remoting.filter.provider.ResponseFilterChain;
 import com.hongcha.remoting.protocol.Protocol;
 import io.netty.channel.*;
 import io.netty.channel.nio.NioEventLoopGroup;
@@ -23,12 +25,10 @@ import java.util.Map;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ExecutionException;
-import java.util.concurrent.atomic.AtomicInteger;
 import java.util.function.Supplier;
 
 
 public abstract class AbstractRemoting<T extends AbstractBootStrap> implements LifeCcycle {
-
 
     protected final Map<Integer, Pair<RequestProcess, EventLoopGroup>> CODE_PROCESS_MAP = new HashMap<>();
 
@@ -38,7 +38,7 @@ public abstract class AbstractRemoting<T extends AbstractBootStrap> implements L
 
     protected EventLoopGroup DEFAULT_EVENT_LOOP_GROUP = new NioEventLoopGroup(1);
 
-    private AtomicInteger id = new AtomicInteger(1);
+    protected IDGenerator IDGenerator = new AtomicIntegerIDGenerator();
 
 
     protected AbstractRemoting(RemotingConfig config) {
@@ -114,7 +114,7 @@ public abstract class AbstractRemoting<T extends AbstractBootStrap> implements L
     }
 
     protected MessageFuture asyncSend(Channel channel, RequestCommon requestCommon) throws ExecutionException, InterruptedException {
-        return getConsumerFilterChin(() -> {
+        return getRequestFilter(() -> {
             MessageFuture messageFuture = createAndPutMessageFuture(requestCommon);
 
             ChannelFuture channelFuture = channel.writeAndFlush(requestCommon);
@@ -130,14 +130,14 @@ public abstract class AbstractRemoting<T extends AbstractBootStrap> implements L
     }
 
     protected void doProcess(ChannelHandlerContext ctx, RequestCommon msg) {
-        preProcessing(ctx, msg);
+        preProcess(ctx, msg);
         Pair<RequestProcess, EventLoopGroup> requestProcessEventLoopGroupPair = CODE_PROCESS_MAP.get(msg.getCode());
         if (requestProcessEventLoopGroupPair != null) {
             RequestProcess requestProcess = requestProcessEventLoopGroupPair.getKey();
             EventLoopGroup eventLoopGroup = requestProcessEventLoopGroupPair.getValue();
             eventLoopGroup.execute(() -> {
                 RequestMessage req = buildRequestMessage(msg);
-                ProviderFilterChain filterChin = getProviderFilterChin(requestProcess);
+                ResponseFilterChain filterChin = getResponseFilterChain(requestProcess);
                 RequestMessage resp;
                 try {
                     resp = filterChin.process(req);
@@ -151,12 +151,10 @@ public abstract class AbstractRemoting<T extends AbstractBootStrap> implements L
                     ctx.channel().writeAndFlush(requestCommon);
                 }
             });
-        } else {
-            //TODO 输出未找到code对应的处理器
         }
     }
 
-    protected void preProcessing(ChannelHandlerContext ctx, RequestCommon msg) {
+    protected void preProcess(ChannelHandlerContext ctx, RequestCommon msg) {
         byte direction = msg.getDirection();
 
         if (direction == 1) {
@@ -170,7 +168,6 @@ public abstract class AbstractRemoting<T extends AbstractBootStrap> implements L
                     future.completeExceptionally(RemotingFactory.getBody(msg));
                 }
             }
-
         }
 
     }
@@ -188,7 +185,7 @@ public abstract class AbstractRemoting<T extends AbstractBootStrap> implements L
         requestCommon.setProtocol(message.getProtocol());
         requestCommon.setDirection(message.getDirection());
         requestCommon.setHeaders(message.getHeaders());
-        Protocol protocol = RemotingFactory.getProtocolFactory().getObject(message.getProtocol());
+        Protocol protocol = RemotingFactory.getProtocolFactory().getValue(message.getProtocol());
         Assert.notNull(protocol, "protocol code " + message.getProtocol() + " not found");
         byte[] encode = protocol.encode(message.getMsg());
         requestCommon.setBody(encode);
@@ -205,7 +202,7 @@ public abstract class AbstractRemoting<T extends AbstractBootStrap> implements L
         requestCommon.setProtocol(oldRequestCommon.getProtocol());
         requestCommon.setHeaderLength(oldRequestCommon.getHeaderLength());
         requestCommon.setHeaders(oldRequestCommon.getHeaders());
-        Protocol protocol = RemotingFactory.getProtocolFactory().getObject(requestCommon.getProtocol());
+        Protocol protocol = RemotingFactory.getProtocolFactory().getValue(requestCommon.getProtocol());
         Assert.notNull(protocol, "protocol code " + requestCommon.getProtocol() + " not found");
         byte[] encode = protocol.encode(body);
         requestCommon.setBody(encode);
@@ -251,16 +248,19 @@ public abstract class AbstractRemoting<T extends AbstractBootStrap> implements L
      * @return
      */
     protected int nextId() {
-        return id.getAndIncrement();
+        return IDGenerator.nextId();
     }
 
-    protected ConsumerFilterChain getConsumerFilterChin(Supplier<MessageFuture> messageFutureSupplier) {
-        return new DefaultConsumerFilterChin(RemotingFactory.getFilterConsumerFactory().getAll(), messageFutureSupplier);
+
+    protected RequestFilterChain getRequestFilter(Supplier<MessageFuture> messageFutureSupplier) {
+        return new DefaultRequestFilterChin(RemotingFactory.getFilterConsumerFactory().getValues(), messageFutureSupplier);
     }
 
-    protected ProviderFilterChain getProviderFilterChin(RequestProcess requestProcess) {
-        return new DefaultProviderFilterChain(RemotingFactory.getFilterProviderFactory().getAll(), requestProcess);
+
+    protected ResponseFilterChain getResponseFilterChain(RequestProcess requestProcess) {
+        return new DefaultResponseFilterChain(RemotingFactory.getFilterProviderFactory().getValues(), requestProcess);
     }
+
 
     protected abstract class AbstractHandler extends SimpleChannelInboundHandler<RequestCommon> {
         @Override

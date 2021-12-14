@@ -8,16 +8,16 @@ import java.util.Iterator;
 import java.util.LinkedList;
 
 
-public class DefaultProviderFilterChain implements ProviderFilterChain {
-    protected Iterator<ProviderFilter> filterIterator;
+public class DefaultResponseFilterChain implements ResponseFilterChain {
+    protected Iterator<ResponseFilter> filterIterator;
 
     protected RequestProcess requestProcess;
 
-    public DefaultProviderFilterChain(Collection<ProviderFilter> providerFilters, RequestProcess requestProcess) {
-        if (providerFilters == null) {
-            providerFilters = new LinkedList<>();
+    public DefaultResponseFilterChain(Collection<ResponseFilter> responseFilters, RequestProcess requestProcess) {
+        if (responseFilters == null) {
+            responseFilters = new LinkedList<>();
         }
-        filterIterator = providerFilters.iterator();
+        filterIterator = responseFilters.iterator();
         this.requestProcess = requestProcess;
     }
 

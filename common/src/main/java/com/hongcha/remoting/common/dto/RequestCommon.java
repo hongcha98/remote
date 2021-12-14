@@ -41,7 +41,7 @@ public class RequestCommon {
     private int code;
 
     /**
-     * 协议类型(body的序列化类型)
+     * 协议类型(body的序列化协议)
      */
     private byte protocol;
 
@@ -71,6 +71,7 @@ public class RequestCommon {
     public Map<String, String> getHeaders() {
         return headers != null ? headers : new HashMap<>();
     }
+
 
     public byte[] getBody() {
         return body != null ? body : new byte[0];

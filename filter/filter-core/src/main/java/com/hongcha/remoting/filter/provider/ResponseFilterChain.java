@@ -6,7 +6,7 @@ import com.hongcha.remoting.common.dto.RequestMessage;
 /**
  * 过滤链
  */
-public interface ProviderFilterChain {
+public interface ResponseFilterChain {
     /**
      * 继续下一个过滤器处理
      *

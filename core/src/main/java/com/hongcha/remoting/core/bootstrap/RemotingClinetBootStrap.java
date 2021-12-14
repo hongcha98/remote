@@ -1,11 +1,11 @@
 package com.hongcha.remoting.core.bootstrap;
 
 
-import com.hongcha.remoting.core.Decoder;
-import com.hongcha.remoting.core.Encoder;
 import com.hongcha.remoting.core.config.RemotingConfig;
 import io.netty.bootstrap.Bootstrap;
-import io.netty.channel.*;
+import io.netty.channel.Channel;
+import io.netty.channel.ChannelFuture;
+import io.netty.channel.EventLoopGroup;
 import io.netty.channel.nio.NioEventLoopGroup;
 import io.netty.channel.socket.nio.NioSocketChannel;
 
@@ -20,8 +20,6 @@ public class RemotingClinetBootStrap extends AbstractBootStrap {
 
     EventLoopGroup boos;
 
-    Encoder encoder;
-
     Map<SocketAddress, Channel> socketAddressChannelMap = new HashMap<>();
 
     public RemotingClinetBootStrap(RemotingConfig config) {
@@ -29,40 +27,26 @@ public class RemotingClinetBootStrap extends AbstractBootStrap {
     }
 
     @Override
-    public void init() {
+    public void doInit() throws Exception {
         bootstrap = new Bootstrap();
 
         boos = new NioEventLoopGroup(config.getBossThreadNum());
 
-        encoder = new Encoder();
-
         bootstrap
                 .group(boos)
                 .channel(NioSocketChannel.class)
-                .option(ChannelOption.SO_BACKLOG, config.getBacklog())
-                .handler(new ChannelInitializer<Channel>() {
-                    @Override
-                    protected void initChannel(Channel ch) throws Exception {
-                        ch
-                                .pipeline()
-                                .addLast(
-                                        new Decoder(),
-                                        encoder
-                                )
-                                .addLast(getHandlerArray());
-                    }
-                });
+                .handler(channelInitializer());
     }
 
     @Override
-    public void start() throws Exception {
+    public void doStart() throws Exception {
         /**
          * 暂未具体逻辑
          */
     }
 
     @Override
-    public void close() throws Exception {
+    public void doClose() throws Exception {
         boos.shutdownGracefully();
     }
 

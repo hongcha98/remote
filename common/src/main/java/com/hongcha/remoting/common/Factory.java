@@ -5,14 +5,18 @@ import java.util.Collection;
 
 public interface Factory<K, V> {
 
-    void register(K key,V value);
+    default void register(K key, V value) {
+        register(new Pair<>(key, value));
+    }
+
 
     void register(Pair<K, V> pair);
 
 
-    V getObject(K key);
+    V getValue(K key);
 
+    Collection<K> getKeys();
 
-    Collection<V> getAll();
+    Collection<V> getValues();
 
 }

@@ -1,6 +1,6 @@
 package com.hongcha.remoting.protocol;
 
-import com.sun.istack.internal.NotNull;
+
 
 /**
  * message的协议
@@ -14,7 +14,7 @@ public interface Protocol {
      * @param o
      * @return
      */
-    byte[] encode(@NotNull Object o);
+    byte[] encode(Object o);
 
     /**
      * 字节反序列话为对象
@@ -24,7 +24,7 @@ public interface Protocol {
      * @param <T>
      * @return
      */
-    <T> T decode(@NotNull byte[] bytes, @NotNull Class<T> clazz);
+    <T> T decode(byte[] bytes, Class<T> clazz);
 
     /**
      * 获取协议名称

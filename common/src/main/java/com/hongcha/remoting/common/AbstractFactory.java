@@ -2,7 +2,6 @@ package com.hongcha.remoting.common;
 
 
 import java.util.Collection;
-import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -17,11 +16,6 @@ public abstract class AbstractFactory<K, V> implements Factory<K, V> {
     protected abstract void init();
 
     @Override
-    public void register(K key, V value) {
-        register(new Pair<>(key, value));
-    }
-
-    @Override
     public void register(Pair<K, V> pair) {
         synchronized (this) {
             if (factoryMap.containsKey(pair.getKey())) {
@@ -32,14 +26,18 @@ public abstract class AbstractFactory<K, V> implements Factory<K, V> {
     }
 
     @Override
-    public V getObject(K key) {
+    public V getValue(K key) {
         return factoryMap.get(key);
     }
 
+    @Override
+    public Collection<K> getKeys() {
+        return factoryMap.keySet();
+    }
 
     @Override
-    public Collection<V> getAll() {
-        return Collections.unmodifiableCollection(factoryMap.values());
+    public Collection<V> getValues() {
+        return factoryMap.values();
     }
 
 }
