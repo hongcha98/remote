@@ -1,5 +1,6 @@
 package com.hongcha.remoting.core;
 
+import com.hongcha.remoting.common.dto.RequestCommon;
 import com.hongcha.remoting.common.dto.RequestMessage;
 import com.hongcha.remoting.core.config.RemotingConfig;
 import io.netty.channel.EventLoopGroup;
@@ -7,6 +8,10 @@ import io.netty.channel.nio.NioEventLoopGroup;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
+
+import java.util.LinkedList;
+import java.util.List;
+import java.util.concurrent.CompletableFuture;
 
 public class RemotingTest {
 
@@ -18,8 +23,9 @@ public class RemotingTest {
 
     EventLoopGroup serverEventLoopGroup;
 
-
     EventLoopGroup clientEventLoopGroup;
+
+    Time time;
 
     @Before
     public void init() throws Exception {
@@ -31,13 +37,18 @@ public class RemotingTest {
         remotingClient.init();
         serverEventLoopGroup = new NioEventLoopGroup(1);
         clientEventLoopGroup = new NioEventLoopGroup(1);
-
+        remotingServer.start();
+        remotingClient.start();
+        time = new Time();
+        time.start = System.currentTimeMillis();
     }
 
     @After
     public void close() throws Exception {
         remotingClient.close();
         remotingServer.close();
+        time.end = System.currentTimeMillis();
+        System.out.println("time.timeCost() = " + time.timeCost());
         serverEventLoopGroup.shutdownGracefully();
         clientEventLoopGroup.shutdownGracefully();
     }
@@ -45,15 +56,13 @@ public class RemotingTest {
 
     @Test
     public void echo() throws Exception {
-        remotingServer.start();
-        remotingClient.start();
 
-        RemotingFactory.getCodeBodyTypeFactory().register(1, Long.class);
+
+        RemotingFactory.getCodeBodyTypeFactory().register(1, String.class);
 
         remotingServer.registerProcess(1, msg -> {
-            String body = (String) msg.getMsg();
-            System.out.println("获取请求内容 : " + body);
-            return null;
+            return msg;
+//            return null;
         }, serverEventLoopGroup);
         RequestMessage requestMessage = new RequestMessage();
 
@@ -61,11 +70,23 @@ public class RemotingTest {
         requestMessage.setProtocol((byte) 2);
         requestMessage.setDirection((byte) 0);
         requestMessage.setHeaders(null);
-        requestMessage.setMsg("哈哈哈  真搞笑");
+        StringBuilder body = new StringBuilder();
 
-        for (int i = 0; i < 1000; i++) {
-            remotingClient.send(remotingConfig.getHost(), remotingConfig.getPort(), requestMessage);
+        for (int i = 0; i < 100; i++) {
+            body.append("哈");
         }
+        requestMessage.setMsg(body.toString());
+
+        List<CompletableFuture<RequestCommon>> list = new LinkedList<>();
+        for (int i = 0; i < 100000; i++) {
+            list.add(remotingClient.send(remotingConfig.getHost(), remotingConfig.getPort(), requestMessage));
+        }
+
+        CompletableFuture<Void> voidCompletableFuture = CompletableFuture.allOf(list.toArray(new CompletableFuture[0]));
+
+        voidCompletableFuture.get();
+
+        System.out.println(1);
 
     }
 
