@@ -1,7 +1,7 @@
 package com.hongcha.remoting.core.bootstrap;
 
 
-import com.hongcha.remoting.common.LifeCcycle;
+import com.hongcha.remoting.common.LifeCycle;
 import com.hongcha.remoting.core.Decoder;
 import com.hongcha.remoting.core.Encoder;
 import com.hongcha.remoting.core.config.RemotingConfig;
@@ -11,7 +11,7 @@ import io.netty.channel.ChannelHandler;
 import io.netty.channel.ChannelInitializer;
 
 
-public abstract class AbstractBootStrap implements LifeCcycle {
+public abstract class AbstractBootStrap implements LifeCycle {
     protected Status status = Status.CREATE;
 
     protected RemotingConfig config;

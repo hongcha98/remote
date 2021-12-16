@@ -9,8 +9,6 @@ import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
 
-import java.util.LinkedList;
-import java.util.List;
 import java.util.concurrent.CompletableFuture;
 
 public class RemotingTest {
@@ -55,13 +53,12 @@ public class RemotingTest {
 
 
     @Test
-    public void echo() throws Exception {
-
+    public void echo() {
 
         RemotingFactory.getCodeBodyTypeFactory().register(1, String.class);
 
         remotingServer.registerProcess(1, msg -> {
-            return msg;
+            throw new NumberFormatException("错了");
 //            return null;
         }, serverEventLoopGroup);
         RequestMessage requestMessage = new RequestMessage();
@@ -77,16 +74,24 @@ public class RemotingTest {
         }
         requestMessage.setMsg(body.toString());
 
-        List<CompletableFuture<RequestCommon>> list = new LinkedList<>();
-        for (int i = 0; i < 100000; i++) {
-            list.add(remotingClient.send(remotingConfig.getHost(), remotingConfig.getPort(), requestMessage));
+//        List<CompletableFuture<RequestCommon>> list = new LinkedList<>();
+
+        try {
+            CompletableFuture<RequestCommon> send = remotingClient.send(remotingConfig.getHost(), remotingConfig.getPort(), requestMessage);
+            RequestCommon requestCommon = send.get();
+        } catch (Exception e) {
+            e.printStackTrace();
         }
 
-        CompletableFuture<Void> voidCompletableFuture = CompletableFuture.allOf(list.toArray(new CompletableFuture[0]));
-
-        voidCompletableFuture.get();
-
-        System.out.println(1);
+//        for (int i = 0; i < 1; i++) {
+//            list.add(remotingClient.send(remotingConfig.getHost(), remotingConfig.getPort(), requestMessage));
+//        }
+//
+//        CompletableFuture<Void> voidCompletableFuture = CompletableFuture.allOf(list.toArray(new CompletableFuture[0]));
+//
+//        voidCompletableFuture.get();
+//
+//        System.out.println(1);
 
     }
 

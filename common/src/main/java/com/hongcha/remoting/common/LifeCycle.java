@@ -3,7 +3,7 @@ package com.hongcha.remoting.common;
 /**
  * 生命周期
  */
-public interface LifeCcycle {
+public interface LifeCycle {
 
     /**
      * 初始化

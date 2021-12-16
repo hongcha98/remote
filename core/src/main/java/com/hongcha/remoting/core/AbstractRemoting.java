@@ -1,14 +1,16 @@
 package com.hongcha.remoting.core;
 
-import com.hongcha.remoting.common.LifeCcycle;
+import com.hongcha.remoting.common.LifeCycle;
 import com.hongcha.remoting.common.MessageFuture;
 import com.hongcha.remoting.common.Pair;
 import com.hongcha.remoting.common.dto.RequestCommon;
 import com.hongcha.remoting.common.dto.RequestMessage;
+import com.hongcha.remoting.common.error.RemoteException;
 import com.hongcha.remoting.common.process.RequestProcess;
 import com.hongcha.remoting.common.util.Assert;
 import com.hongcha.remoting.core.bootstrap.AbstractBootStrap;
 import com.hongcha.remoting.core.config.RemotingConfig;
+import com.hongcha.remoting.core.constant.RemoteConstant;
 import com.hongcha.remoting.core.generator.AtomicIntegerIDGenerator;
 import com.hongcha.remoting.core.generator.IDGenerator;
 import com.hongcha.remoting.filter.consumer.DefaultRequestFilterChin;
@@ -26,7 +28,10 @@ import java.util.concurrent.ExecutionException;
 import java.util.function.Supplier;
 
 
-public abstract class AbstractRemoting<T extends AbstractBootStrap> implements LifeCcycle {
+public abstract class AbstractRemoting<T extends AbstractBootStrap> implements LifeCycle {
+    static {
+        RemotingFactory.getCodeBodyTypeFactory().register(RemoteConstant.ERROR_CODE, RemoteConstant.ERROR_CODE_TYPE);
+    }
 
     protected final Map<Integer, Pair<RequestProcess, EventLoopGroup>> CODE_PROCESS_MAP = new HashMap<>();
 
@@ -127,8 +132,9 @@ public abstract class AbstractRemoting<T extends AbstractBootStrap> implements L
                         ctx.channel().writeAndFlush(buildRequestCommon(resp));
                     }
                 } catch (Throwable e) {
-                    RequestCommon requestCommon = buildRequestCommon(msg, e);
+                    RequestCommon requestCommon = buildRequestCommon(msg, new RemoteException(e));
                     requestCommon.setDirection(true);
+                    requestCommon.setCode(RemoteConstant.ERROR_CODE);
                     ctx.channel().writeAndFlush(requestCommon);
                 }
             });
@@ -139,7 +145,7 @@ public abstract class AbstractRemoting<T extends AbstractBootStrap> implements L
         if (msg.isResponse()) {
             MessageFuture messageFuture = MESSAGE_FUTURE_MAP.remove(msg.getId());
             if (messageFuture != null) {
-                boolean isSuccess = msg.getCode() != 500;
+                boolean isSuccess = msg.getCode() != RemoteConstant.ERROR_CODE;
                 CompletableFuture<RequestCommon> future = messageFuture.getFuture();
                 if (isSuccess) {
                     future.complete(msg);
