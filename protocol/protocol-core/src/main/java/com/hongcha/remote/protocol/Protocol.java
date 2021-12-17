@@ -1,7 +1,6 @@
 package com.hongcha.remote.protocol;
 
 
-
 /**
  * message的协议
  */

@@ -1,8 +1,8 @@
 package com.hongcha.remote.core;
 
 
-import com.hongcha.remote.core.config.RemoteConfig;
 import com.hongcha.remote.core.bootstrap.RemoteServerBootStrap;
+import com.hongcha.remote.core.config.RemoteConfig;
 import io.netty.channel.ChannelHandler;
 
 public class RemoteServer extends AbstractRemote<RemoteServerBootStrap> {

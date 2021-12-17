@@ -68,11 +68,17 @@ public class RequestCommon {
         return headers != null ? headers : new HashMap<>();
     }
 
+    public void setHeaders(Map<String, String> headers) {
+        this.headers = headers;
+    }
 
     public byte[] getBody() {
         return body != null ? body : new byte[0];
     }
 
+    public void setBody(byte[] body) {
+        this.body = body;
+    }
 
     public int getLength() {
         return length;
@@ -114,6 +120,10 @@ public class RequestCommon {
         this.direction = direction;
     }
 
+    public void setDirection(boolean response) {
+        this.direction = response ? (byte) 1 : (byte) 0;
+    }
+
     public int getHeaderLength() {
         return headerLength;
     }
@@ -122,20 +132,8 @@ public class RequestCommon {
         this.headerLength = headerLength;
     }
 
-    public void setHeaders(Map<String, String> headers) {
-        this.headers = headers;
-    }
-
-    public void setBody(byte[] body) {
-        this.body = body;
-    }
-
     public boolean isResponse() {
         return this.direction == (byte) 1;
-    }
-
-    public void setDirection(boolean response) {
-        this.direction = response ? (byte) 1 : (byte) 0;
     }
 
 }

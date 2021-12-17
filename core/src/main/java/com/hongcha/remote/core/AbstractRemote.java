@@ -16,7 +16,6 @@ import com.hongcha.remote.filter.consumer.DefaultRequestFilterChin;
 import com.hongcha.remote.filter.consumer.RequestFilterChain;
 import com.hongcha.remote.filter.provider.DefaultResponseFilterChain;
 import com.hongcha.remote.filter.provider.ResponseFilterChain;
-
 import com.hongcha.remote.protocol.Protocol;
 import io.netty.channel.*;
 import io.netty.channel.nio.NioEventLoopGroup;
