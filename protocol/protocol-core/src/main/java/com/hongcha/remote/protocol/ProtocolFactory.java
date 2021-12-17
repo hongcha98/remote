@@ -8,7 +8,7 @@ public class ProtocolFactory extends AbstractSpiLoad<Byte, Protocol> {
     private static final String PROTOCOL_SPI = "META-INF/remote-protocol";
 
     @Override
-    protected String getSpiRosourcesName() {
+    protected String getSpiResourcesName() {
         return PROTOCOL_SPI;
     }
 

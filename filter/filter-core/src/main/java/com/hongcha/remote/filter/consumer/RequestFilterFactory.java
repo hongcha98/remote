@@ -8,7 +8,7 @@ public class RequestFilterFactory extends AbstractSpiLoad<String, RequestFilter>
     private static final String FILTER_SPI = "META-INF/remote-filter-request";
 
     @Override
-    protected String getSpiRosourcesName() {
+    protected String getSpiResourcesName() {
         return FILTER_SPI;
     }
 

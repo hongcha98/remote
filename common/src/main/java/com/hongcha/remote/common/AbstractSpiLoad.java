@@ -14,7 +14,7 @@ import java.util.Properties;
  * @param <V>
  */
 public abstract class AbstractSpiLoad<K, V> extends AbstractFactory<K, V> {
-    protected abstract String getSpiRosourcesName();
+    protected abstract String getSpiResourcesName();
 
     @Override
     protected void init() {
@@ -26,8 +26,8 @@ public abstract class AbstractSpiLoad<K, V> extends AbstractFactory<K, V> {
     }
 
     protected void loadSpi() throws IOException {
-        List<Properties> rosources = ResourceUtils.getRosources(this.getClass().getClassLoader(), getSpiRosourcesName());
-        rosources.forEach(properties -> {
+        List<Properties> resources = ResourceUtils.getResources(this.getClass().getClassLoader(), getSpiResourcesName());
+        resources.forEach(properties -> {
             properties.forEach((key, value) -> {
                 spiRegister(key, value);
             });

@@ -11,8 +11,8 @@ import java.util.function.Function;
 
 public class ResourceUtils {
 
-    public static List<Properties> getRosources(ClassLoader classLoader, String resourcesName) throws IOException {
-        return getRosources(classLoader, resourcesName, inputStream -> {
+    public static List<Properties> getResources(ClassLoader classLoader, String resourcesName) throws IOException {
+        return getResources(classLoader, resourcesName, inputStream -> {
             try {
                 Properties properties = new Properties();
                 properties.load(inputStream);
@@ -24,7 +24,7 @@ public class ResourceUtils {
         });
     }
 
-    public static <T> List<T> getRosources(ClassLoader classLoader, String resourcesName, Function<InputStream, T> inputStreamMapping) throws IOException {
+    public static <T> List<T> getResources(ClassLoader classLoader, String resourcesName, Function<InputStream, T> inputStreamMapping) throws IOException {
         Enumeration<URL> urls = (classLoader != null ?
                 classLoader.getResources(resourcesName) :
                 ClassLoader.getSystemResources(resourcesName));
