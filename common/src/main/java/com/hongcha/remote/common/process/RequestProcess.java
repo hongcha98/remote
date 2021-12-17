@@ -10,6 +10,6 @@ import io.netty.channel.ChannelHandlerContext;
 
 public interface RequestProcess {
 
-    void proess(ChannelHandlerContext ctx, RequestCommon RequestMessage);
+    void process(ChannelHandlerContext ctx, RequestCommon RequestMessage);
 
 }

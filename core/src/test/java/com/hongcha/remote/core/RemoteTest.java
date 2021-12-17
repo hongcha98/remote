@@ -52,7 +52,7 @@ public class RemoteTest {
 
     @Test
     public void echo() throws Exception {
-        int n = 1000;
+        int n = 100000;
         CountDownLatch countDownLatch = new CountDownLatch(n);
         remoteServer.registerProcess(1, (ctx, req) -> {
             String body = RemoteUtils.getBody(req, String.class);

@@ -32,6 +32,6 @@ public class DefaultResponseFilterChain implements ResponseFilterChain {
         if (filterIterator.hasNext()) {
             filterIterator.next().filter(requestCommon, this);
         }
-        requestProcess.proess(ctx, requestCommon);
+        requestProcess.process(ctx, requestCommon);
     }
 }
