@@ -6,11 +6,13 @@ import com.hongcha.remote.common.Pair;
 import com.hongcha.remote.common.RequestCommon;
 import com.hongcha.remote.common.constant.RemoteConstant;
 import com.hongcha.remote.common.exception.RemoteException;
+import com.hongcha.remote.common.exception.RemoteExceptionBody;
 import com.hongcha.remote.common.process.RequestProcess;
 import com.hongcha.remote.common.util.Assert;
 import com.hongcha.remote.core.bootstrap.AbstractBootStrap;
 import com.hongcha.remote.core.config.RemoteConfig;
 import com.hongcha.remote.core.generator.AtomicIntegerIDGenerator;
+import com.hongcha.remote.core.generator.IDGenerator;
 import com.hongcha.remote.core.util.RemoteUtils;
 import com.hongcha.remote.filter.consumer.DefaultRequestFilterChin;
 import com.hongcha.remote.filter.consumer.RequestFilterChain;
@@ -36,7 +38,7 @@ public abstract class AbstractRemote<T extends AbstractBootStrap> implements Lif
 
     protected EventLoopGroup defaultEventLoopGroup = new NioEventLoopGroup(1);
 
-    protected com.hongcha.remote.core.generator.IDGenerator IDGenerator = new AtomicIntegerIDGenerator();
+    protected IDGenerator IDGenerator = new AtomicIntegerIDGenerator();
 
     protected AbstractRemote(RemoteConfig config) {
         this.config = config;
@@ -102,14 +104,7 @@ public abstract class AbstractRemote<T extends AbstractBootStrap> implements Lif
             RequestProcess requestProcess = requestProcessEventLoopGroupPair.getKey();
             EventLoopGroup eventLoopGroup = requestProcessEventLoopGroupPair.getValue();
             eventLoopGroup.execute(() -> {
-                try {
                     getResponseFilterChain(ctx, requestProcess).process(req);
-                } catch (Throwable e) {
-                    RequestCommon requestCommon = buildRequestCommon(req, new RemoteException(e));
-                    requestCommon.setDirection(true);
-                    requestCommon.setCode(RemoteConstant.ERROR_CODE);
-                    ctx.channel().writeAndFlush(requestCommon);
-                }
             });
         }
     }
@@ -123,7 +118,7 @@ public abstract class AbstractRemote<T extends AbstractBootStrap> implements Lif
                 if (isSuccess) {
                     future.complete(msg);
                 } else {
-                    future.completeExceptionally(RemoteUtils.getBody(msg, Throwable.class));
+                    future.completeExceptionally(new RemoteException(RemoteUtils.getBody(msg, RemoteExceptionBody.class)));
                 }
             }
         }
