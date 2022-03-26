@@ -1,6 +1,5 @@
 package com.hongcha.remote.protocol;
 
-
 import com.hongcha.remote.common.util.Assert;
 
 public abstract class AbstractProtocol implements Protocol {

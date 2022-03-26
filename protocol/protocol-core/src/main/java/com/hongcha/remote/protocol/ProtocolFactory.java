@@ -18,7 +18,7 @@ public class ProtocolFactory extends AbstractSpiLoad<Byte, Protocol> {
     }
 
     @Override
-    protected Protocol v(String valueStr) {
+    protected Protocol v(String valueStr, Object... args) {
         try {
             return ClassUtils.instantiate(valueStr, Protocol.class);
         } catch (ReflectiveOperationException e) {

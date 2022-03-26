@@ -18,7 +18,7 @@ public class ResponseFilterFactory extends AbstractSpiLoad<String, ResponseFilte
     }
 
     @Override
-    protected ResponseFilter v(String valueStr) {
+    protected ResponseFilter v(String valueStr, Object... args) {
         try {
             return ClassUtils.instantiate(valueStr, ResponseFilter.class);
         } catch (ReflectiveOperationException e) {

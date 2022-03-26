@@ -9,7 +9,6 @@ import io.netty.channel.EventLoopGroup;
 import io.netty.channel.nio.NioEventLoopGroup;
 import io.netty.channel.socket.nio.NioSocketChannel;
 
-import java.net.InetAddress;
 import java.net.InetSocketAddress;
 import java.net.SocketAddress;
 import java.util.Map;
@@ -31,7 +30,7 @@ public class RemoteClientBootStrap extends AbstractBootStrap {
     public void doStart() throws Exception {
         bootstrap = new Bootstrap();
 
-        boos = new NioEventLoopGroup(config.getBossThreadNum());
+        boos = new NioEventLoopGroup(config.getWorkThreadNum());
 
         bootstrap
                 .group(boos)
@@ -45,24 +44,19 @@ public class RemoteClientBootStrap extends AbstractBootStrap {
     }
 
 
-    public Channel connect(String inetHost, int inetPort) throws InterruptedException {
-        return connect(InetSocketAddress.createUnresolved(inetHost, inetPort));
+    public Channel connect(String host, int port) throws InterruptedException {
+        return connect(InetSocketAddress.createUnresolved(host, port));
     }
 
 
-    public Channel connect(InetAddress inetHost, int inetPort) throws InterruptedException {
-        return connect(new InetSocketAddress(inetHost, inetPort));
-    }
-
-
-    public Channel connect(SocketAddress remoteAddress) throws InterruptedException {
-        Channel channel = socketAddressChannelMap.get(remoteAddress);
+    public Channel connect(SocketAddress address) throws InterruptedException {
+        Channel channel = socketAddressChannelMap.get(address);
         if (channel == null || (channel != null && !channel.isActive())) {
             synchronized (this) {
-                channel = socketAddressChannelMap.get(remoteAddress);
+                channel = socketAddressChannelMap.get(address);
                 if (channel == null || (channel != null && !channel.isActive())) {
-                    channel = doConnect(remoteAddress);
-                    socketAddressChannelMap.put(remoteAddress, channel);
+                    channel = doConnect(address);
+                    socketAddressChannelMap.put(address, channel);
                 }
             }
         }

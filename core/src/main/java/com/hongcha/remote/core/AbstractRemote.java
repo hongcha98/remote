@@ -8,53 +8,46 @@ import com.hongcha.remote.common.constant.RemoteConstant;
 import com.hongcha.remote.common.exception.RemoteException;
 import com.hongcha.remote.common.exception.RemoteExceptionBody;
 import com.hongcha.remote.common.process.RequestProcess;
-import com.hongcha.remote.common.util.Assert;
 import com.hongcha.remote.core.bootstrap.AbstractBootStrap;
 import com.hongcha.remote.core.config.RemoteConfig;
-import com.hongcha.remote.core.generator.AtomicIntegerIDGenerator;
 import com.hongcha.remote.core.generator.IDGenerator;
 import com.hongcha.remote.core.util.RemoteUtils;
 import com.hongcha.remote.filter.consumer.DefaultRequestFilterChin;
 import com.hongcha.remote.filter.consumer.RequestFilterChain;
 import com.hongcha.remote.filter.provider.DefaultResponseFilterChain;
 import com.hongcha.remote.filter.provider.ResponseFilterChain;
-import com.hongcha.remote.protocol.Protocol;
-import io.netty.channel.*;
-import io.netty.channel.nio.NioEventLoopGroup;
+import io.netty.channel.Channel;
+import io.netty.channel.ChannelFuture;
+import io.netty.channel.ChannelHandlerContext;
+import io.netty.channel.SimpleChannelInboundHandler;
 
 import java.util.HashMap;
 import java.util.Map;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ExecutionException;
+import java.util.concurrent.ExecutorService;
 import java.util.function.Supplier;
 
 
 public abstract class AbstractRemote<T extends AbstractBootStrap> implements LifeCycle {
-    protected final Map<Integer, Pair<RequestProcess, EventLoopGroup>> codeProcessMap = new HashMap<>();
+    protected final Map<Integer, Pair<RequestProcess, ExecutorService>> codeProcessMap = new HashMap<>();
 
     protected final Map<Integer, MessageFuture> futureHashMap = new HashMap<>();
 
     private final RemoteConfig config;
 
-    protected EventLoopGroup defaultEventLoopGroup = new NioEventLoopGroup(1);
-
-    protected IDGenerator IDGenerator = new AtomicIntegerIDGenerator();
-
     protected AbstractRemote(RemoteConfig config) {
         this.config = config;
     }
-
 
     @Override
     public void start() throws Exception {
         getBootStrap().start();
     }
 
-
     @Override
     public void close() throws Exception {
         getBootStrap().close();
-        defaultEventLoopGroup.shutdownGracefully();
     }
 
     protected abstract T getBootStrap();
@@ -64,24 +57,21 @@ public abstract class AbstractRemote<T extends AbstractBootStrap> implements Lif
         return config;
     }
 
-    public void registerProcess(int code, RequestProcess requestProcess, EventLoopGroup eventLoopGroup) {
-        codeProcessMap.put(code, new Pair(requestProcess, eventLoopGroup));
+    public void registerProcess(int code, RequestProcess requestProcess, ExecutorService executorService) {
+        codeProcessMap.put(code, new Pair(requestProcess, executorService));
     }
 
 
     public MessageFuture createMessageFuture(RequestCommon requestCommon) {
-        requestCommon.setId(IDGenerator.nextId());
+        requestCommon.setId(getIDGenerator().nextId());
         int id = requestCommon.getId();
         MessageFuture messageFuture = new MessageFuture(requestCommon);
         futureHashMap.put(id, messageFuture);
         return messageFuture;
     }
 
+    protected abstract IDGenerator getIDGenerator();
 
-    protected RequestCommon send(Channel channel, RequestCommon requestCommon) throws ExecutionException, InterruptedException {
-        MessageFuture messageFuture = asyncSend(channel, requestCommon);
-        return messageFuture.getFuture().get();
-    }
 
     protected MessageFuture asyncSend(Channel channel, RequestCommon requestCommon) throws ExecutionException, InterruptedException {
         return getRequestFilter(() -> {
@@ -99,12 +89,12 @@ public abstract class AbstractRemote<T extends AbstractBootStrap> implements Lif
 
     protected void doProcess(ChannelHandlerContext ctx, RequestCommon req) {
         preProcess(ctx, req);
-        Pair<RequestProcess, EventLoopGroup> requestProcessEventLoopGroupPair = codeProcessMap.get(req.getCode());
+        Pair<RequestProcess, ExecutorService> requestProcessEventLoopGroupPair = codeProcessMap.get(req.getCode());
         if (requestProcessEventLoopGroupPair != null) {
             RequestProcess requestProcess = requestProcessEventLoopGroupPair.getKey();
-            EventLoopGroup eventLoopGroup = requestProcessEventLoopGroupPair.getValue();
+            ExecutorService eventLoopGroup = requestProcessEventLoopGroupPair.getValue();
             eventLoopGroup.execute(() -> {
-                    getResponseFilterChain(ctx, requestProcess).process(req);
+                getResponseFilterChain(ctx, requestProcess).process(req);
             });
         }
     }
@@ -125,23 +115,6 @@ public abstract class AbstractRemote<T extends AbstractBootStrap> implements Lif
 
     }
 
-
-    /**
-     * 根据旧的oldRequestCommon构造新的oldRequestCommon,不会设置#{@link RequestCommon#setDirection(byte)}
-     */
-    protected RequestCommon buildRequestCommon(RequestCommon oldRequestCommon, Object body) {
-        RequestCommon requestCommon = new RequestCommon();
-        requestCommon.setId(oldRequestCommon.getId());
-        requestCommon.setCode(oldRequestCommon.getCode());
-        requestCommon.setProtocol(oldRequestCommon.getProtocol());
-        requestCommon.setHeaderLength(oldRequestCommon.getHeaderLength());
-        requestCommon.setHeaders(oldRequestCommon.getHeaders());
-        Protocol protocol = RemoteUtils.getProtocolFactory().getValue(requestCommon.getProtocol());
-        Assert.notNull(protocol, "protocol code " + requestCommon.getProtocol() + " not found");
-        byte[] encode = protocol.encode(body);
-        requestCommon.setBody(encode);
-        return requestCommon;
-    }
 
     protected RequestFilterChain getRequestFilter(Supplier<MessageFuture> messageFutureSupplier) {
         return new DefaultRequestFilterChin(RemoteUtils.getFilterConsumerFactory().getValues(), messageFutureSupplier);

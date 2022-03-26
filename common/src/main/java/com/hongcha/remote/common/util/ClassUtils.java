@@ -34,7 +34,7 @@ public class ClassUtils {
             throw new ReflectiveOperationException(clazz.getName() + " is interface");
         }
         if (clazz.isAssignableFrom(superClass)) {
-            throw new ReflectiveOperationException(clazz.getName() + " no is " + superClass.getName() + " impl");
+            throw new ReflectiveOperationException(clazz.getName() + " no is " + superClass.getName() + " subclass");
         }
 
         Constructor<?> clazzDeclaredConstructor = clazz.getDeclaredConstructor();

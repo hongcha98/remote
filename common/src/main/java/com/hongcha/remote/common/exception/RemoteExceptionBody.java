@@ -4,19 +4,16 @@ import com.hongcha.remote.common.util.ExceptionUtils;
 
 public class RemoteExceptionBody {
     private String message;
-
     private StackTraceElement[] stackTraceElements;
 
     public RemoteExceptionBody() {
 
     }
 
-
     public RemoteExceptionBody(Throwable e) {
         this.message = e.getMessage();
         stackTraceElements = ExceptionUtils.getAllStackTraceElements(e);
     }
-
 
     public String getMessage() {
         return message;

@@ -111,6 +111,7 @@ public final class User {
         private volatile java.lang.Object name_;
         private int age_;
         private byte memoizedIsInitialized = -1;
+
         // Use Demo.newBuilder() to construct.
         private Demo(com.google.protobuf.GeneratedMessageV3.Builder<?> builder) {
             super(builder);

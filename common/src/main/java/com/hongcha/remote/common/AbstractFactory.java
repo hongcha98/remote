@@ -2,12 +2,12 @@ package com.hongcha.remote.common;
 
 
 import java.util.Collection;
-import java.util.HashMap;
 import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
 
 
 public abstract class AbstractFactory<K, V> implements Factory<K, V> {
-    protected final Map<K, V> factoryMap = new HashMap<>();
+    protected final Map<K, V> factoryMap = new ConcurrentHashMap<>(16);
 
     public AbstractFactory() {
         this.init();
@@ -17,12 +17,10 @@ public abstract class AbstractFactory<K, V> implements Factory<K, V> {
 
     @Override
     public void register(Pair<K, V> pair) {
-        synchronized (this) {
-            if (factoryMap.containsKey(pair.getKey())) {
-                throw new RuntimeException(" key : " + pair.getKey() + " existed");
-            }
-            factoryMap.put(pair.getKey(), pair.getValue());
+        if (factoryMap.containsKey(pair.getKey())) {
+            throw new RuntimeException(" key : " + pair.getKey() + " existed");
         }
+        factoryMap.put(pair.getKey(), pair.getValue());
     }
 
     @Override

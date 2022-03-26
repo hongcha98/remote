@@ -16,7 +16,7 @@ public interface Protocol {
     byte[] encode(Object o);
 
     /**
-     * 字节反序列话为对象
+     * 字节反序列化为对象
      *
      * @param bytes
      * @param clazz

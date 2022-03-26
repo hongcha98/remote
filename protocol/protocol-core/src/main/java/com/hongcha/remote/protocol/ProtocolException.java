@@ -12,7 +12,7 @@ public class ProtocolException extends RuntimeException {
         );
     }
 
-    private ProtocolException(String msg, Throwable throwable, Protocol protocol) {
+    private ProtocolException(String msg, Protocol protocol, Throwable throwable) {
         super(
                 String.format(
                         "protocol : %s , %s",
@@ -29,7 +29,7 @@ public class ProtocolException extends RuntimeException {
     }
 
     public static ProtocolException encode(Class<?> clazz, Protocol protocol, Throwable throwable) {
-        return new ProtocolException(clazz.getName() + " encode failure", throwable, protocol);
+        return new ProtocolException(clazz.getName() + " encode failure", protocol, throwable);
     }
 
 
@@ -38,7 +38,7 @@ public class ProtocolException extends RuntimeException {
     }
 
     public static ProtocolException decode(Class<?> clazz, Protocol protocol, Throwable throwable) {
-        return new ProtocolException(clazz.getName() + " decode failure", throwable, protocol);
+        return new ProtocolException(clazz.getName() + " decode failure", protocol, throwable);
     }
 
 

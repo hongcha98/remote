@@ -10,7 +10,6 @@ import io.netty.channel.nio.NioEventLoopGroup;
 import io.netty.channel.socket.nio.NioServerSocketChannel;
 
 public class RemoteServerBootStrap extends AbstractBootStrap {
-
     ServerBootstrap serverBootstrap;
 
     EventLoopGroup boos;
@@ -21,15 +20,11 @@ public class RemoteServerBootStrap extends AbstractBootStrap {
         super(config);
     }
 
-
     @Override
     public void doStart() throws Exception {
         serverBootstrap = new ServerBootstrap();
-
         boos = new NioEventLoopGroup(config.getBossThreadNum());
-
         work = new NioEventLoopGroup(config.getWorkThreadNum());
-
         serverBootstrap
                 .group(boos, work)
                 .channel(NioServerSocketChannel.class)

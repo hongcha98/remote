@@ -14,7 +14,7 @@ import java.util.Properties;
  * @param <V>
  */
 public abstract class AbstractSpiLoad<K, V> extends AbstractFactory<K, V> {
-    protected abstract String getSpiResourcesName();
+
 
     @Override
     protected void init() {
@@ -32,14 +32,20 @@ public abstract class AbstractSpiLoad<K, V> extends AbstractFactory<K, V> {
                 spiRegister(key, value);
             });
         });
-
-
     }
+
 
     protected void spiRegister(Object key, Object value) {
-        register(k(key.toString()), v(value.toString()));
+        register(k(key.toString()), v(value.toString(), getArgs()));
     }
 
+
+    protected Object[] getArgs() {
+        return new Object[0];
+    }
+
+
+    protected abstract String getSpiResourcesName();
 
     /**
      * spi读取的key string 转换成具体的类型
@@ -56,7 +62,6 @@ public abstract class AbstractSpiLoad<K, V> extends AbstractFactory<K, V> {
      * @param valueStr
      * @return
      */
-    protected abstract V v(String valueStr);
-
+    protected abstract V v(String valueStr, Object... args);
 
 }

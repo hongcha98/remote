@@ -1,8 +1,6 @@
 package com.hongcha.remote.core.config;
 
 
-import java.util.Objects;
-
 public class RemoteConfig {
     /**
      *
@@ -25,6 +23,9 @@ public class RemoteConfig {
 
 
     private int backlog = 100;
+
+
+    private int timeOut = 30000;
 
 
     public String getHost() {
@@ -67,16 +68,11 @@ public class RemoteConfig {
         this.backlog = backlog;
     }
 
-    @Override
-    public boolean equals(Object o) {
-        if (this == o) return true;
-        if (o == null || getClass() != o.getClass()) return false;
-        RemoteConfig that = (RemoteConfig) o;
-        return port == that.port && bossThreadNum == that.bossThreadNum && workThreadNum == that.workThreadNum && backlog == that.backlog && Objects.equals(host, that.host);
+    public int getTimeOut() {
+        return timeOut;
     }
 
-    @Override
-    public int hashCode() {
-        return Objects.hash(host, port, bossThreadNum, workThreadNum, backlog);
+    public void setTimeOut(int timeOut) {
+        this.timeOut = timeOut;
     }
 }
