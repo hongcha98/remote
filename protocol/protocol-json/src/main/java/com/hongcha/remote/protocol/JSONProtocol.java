@@ -1,10 +1,10 @@
 package com.hongcha.remote.protocol;
 
 import com.alibaba.fastjson.JSON;
+import com.hongcha.remote.common.spi.SpiDescribe;
 
-/**
- * json序列化 对应的协议码 为 0
- */
+
+@SpiDescribe(name = "json",code = 1)
 public class JSONProtocol extends AbstractProtocol {
 
     @Override

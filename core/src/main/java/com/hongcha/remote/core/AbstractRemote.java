@@ -8,14 +8,17 @@ import com.hongcha.remote.common.constant.RemoteConstant;
 import com.hongcha.remote.common.exception.RemoteException;
 import com.hongcha.remote.common.exception.RemoteExceptionBody;
 import com.hongcha.remote.common.process.RequestProcess;
+import com.hongcha.remote.common.spi.SpiLoader;
 import com.hongcha.remote.core.bootstrap.AbstractBootStrap;
 import com.hongcha.remote.core.config.RemoteConfig;
 import com.hongcha.remote.core.generator.IDGenerator;
-import com.hongcha.remote.core.util.RemoteUtils;
 import com.hongcha.remote.filter.consumer.DefaultRequestFilterChin;
+import com.hongcha.remote.filter.consumer.RequestFilter;
 import com.hongcha.remote.filter.consumer.RequestFilterChain;
 import com.hongcha.remote.filter.provider.DefaultResponseFilterChain;
+import com.hongcha.remote.filter.provider.ResponseFilter;
 import com.hongcha.remote.filter.provider.ResponseFilterChain;
+import com.hongcha.remote.protocol.Protocol;
 import io.netty.channel.Channel;
 import io.netty.channel.ChannelFuture;
 import io.netty.channel.ChannelHandlerContext;
@@ -108,7 +111,7 @@ public abstract class AbstractRemote<T extends AbstractBootStrap> implements Lif
                 if (isSuccess) {
                     future.complete(msg);
                 } else {
-                    future.completeExceptionally(new RemoteException(RemoteUtils.getBody(msg, RemoteExceptionBody.class)));
+                    future.completeExceptionally(new RemoteException(SpiLoader.DEFAULT.load(Protocol.class, msg.getCode()).decode(msg.getBody(), RemoteExceptionBody.class)));
                 }
             }
         }
@@ -117,11 +120,11 @@ public abstract class AbstractRemote<T extends AbstractBootStrap> implements Lif
 
 
     protected RequestFilterChain getRequestFilter(Supplier<MessageFuture> messageFutureSupplier) {
-        return new DefaultRequestFilterChin(RemoteUtils.getFilterConsumerFactory().getValues(), messageFutureSupplier);
+        return new DefaultRequestFilterChin(SpiLoader.DEFAULT.loadAll(RequestFilter.class), messageFutureSupplier);
     }
 
     protected ResponseFilterChain getResponseFilterChain(ChannelHandlerContext ctx, RequestProcess requestProcess) {
-        return new DefaultResponseFilterChain(RemoteUtils.getFilterProviderFactory().getValues(), ctx, requestProcess);
+        return new DefaultResponseFilterChain(SpiLoader.DEFAULT.loadAll(ResponseFilter.class), ctx, requestProcess);
     }
 
     protected abstract class AbstractHandler extends SimpleChannelInboundHandler<RequestCommon> {

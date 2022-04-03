@@ -1,14 +1,14 @@
 package com.hongcha.remote.protocol;
 
+import com.hongcha.remote.common.spi.SpiDescribe;
+
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
 import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
 
-/**
- * 对应的协议码为1
- */
 
+@SpiDescribe(name = "java",code = 0)
 public class JavaProtocol extends AbstractProtocol {
 
     @Override

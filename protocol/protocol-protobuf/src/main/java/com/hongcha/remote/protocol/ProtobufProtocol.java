@@ -1,11 +1,13 @@
 package com.hongcha.remote.protocol;
 
 import com.google.protobuf.MessageLite;
+import com.hongcha.remote.common.spi.SpiDescribe;
 
 import java.lang.reflect.Method;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 
+@SpiDescribe(name = "protobuf", code = 3)
 public class ProtobufProtocol extends AbstractProtocol {
     private static Map<Class<?>, Method> PARSE_FROM_MAP = new ConcurrentHashMap<>();
 

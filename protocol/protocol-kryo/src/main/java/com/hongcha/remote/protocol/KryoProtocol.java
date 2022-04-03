@@ -4,11 +4,13 @@ package com.hongcha.remote.protocol;
 import com.esotericsoftware.kryo.Kryo;
 import com.esotericsoftware.kryo.io.Input;
 import com.esotericsoftware.kryo.io.Output;
+import com.hongcha.remote.common.spi.SpiDescribe;
 import org.objenesis.strategy.StdInstantiatorStrategy;
 
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
 
+@SpiDescribe(name = "kryo",code = 2)
 public class KryoProtocol extends AbstractProtocol {
     public KryoProtocol() {
     }
