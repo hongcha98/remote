@@ -30,12 +30,6 @@
             <version>${version}</version>
         </dependency>
 
-        <dependency>
-            <groupId>com.hongcha.remoting</groupId>
-            <artifactId>filter-core</artifactId>
-            <version>${version}</version>
-        </dependency>
-
 
         <dependency>
             <groupId>com.hongcha.remoting</groupId>

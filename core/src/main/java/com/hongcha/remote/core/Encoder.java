@@ -2,14 +2,13 @@ package com.hongcha.remote.core;
 
 
 import com.hongcha.remote.common.RequestCommon;
+import com.hongcha.remote.common.spi.SpiLoader;
+import com.hongcha.remote.protocol.Protocol;
 import io.netty.buffer.ByteBuf;
 import io.netty.channel.ChannelHandler;
 import io.netty.channel.ChannelHandlerContext;
 import io.netty.handler.codec.MessageToByteEncoder;
 
-import java.nio.charset.StandardCharsets;
-import java.util.LinkedList;
-import java.util.List;
 import java.util.Map;
 
 @ChannelHandler.Sharable
@@ -32,13 +31,7 @@ public class Encoder extends MessageToByteEncoder<RequestCommon> {
     }
 
     private byte[] encodeHeaders(Map<String, String> headers) {
-        if (headers.isEmpty())
-            return new byte[0];
-        List<String> headerList = new LinkedList<>();
-        headers.forEach((k, v) -> {
-            headerList.add(k + RequestCommon.HEADER_KV_DELIMITER + v);
-        });
-        return String.join(RequestCommon.HEADER_DELIMITER, headerList).getBytes(StandardCharsets.UTF_8);
+        return SpiLoader.load(Protocol.class, "json").encode(headers);
     }
 
 }

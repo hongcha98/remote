@@ -3,29 +3,16 @@ package com.hongcha.remote.common;
 import java.util.HashMap;
 import java.util.Map;
 
+/**
+ * length id code  protocol direction headerLength  headers body
+ */
+
 public class RequestCommon {
-
-    /**
-     * header k v 分隔符
-     */
-    public static final String HEADER_KV_DELIMITER = ":KV_\r:";
-
-    /**
-     * header与header之间的分隔符
-     */
-    public static final String HEADER_DELIMITER = ":HEADER_\r:";
-
     /**
      * 固定占位符的长度（除heraders和body)
      */
 
     public static final int FIXED_PLACEHOLDER_LENGTH = 4 + 4 + 1 + 1 + 4;
-
-    /**
-     * 全部长度
-     */
-    private int length;
-
     /**
      * 信息id
      */
@@ -45,13 +32,6 @@ public class RequestCommon {
      * 传输方向  0：请求  1：返回
      */
     private byte direction;
-
-
-    /**
-     * header长度
-     */
-    private int headerLength;
-
 
     /**
      * 自定义header
@@ -80,13 +60,6 @@ public class RequestCommon {
         this.body = body;
     }
 
-    public int getLength() {
-        return length;
-    }
-
-    public void setLength(int length) {
-        this.length = length;
-    }
 
     public int getId() {
         return id;
@@ -122,14 +95,6 @@ public class RequestCommon {
 
     public void setDirection(boolean response) {
         this.direction = response ? (byte) 1 : (byte) 0;
-    }
-
-    public int getHeaderLength() {
-        return headerLength;
-    }
-
-    public void setHeaderLength(int headerLength) {
-        this.headerLength = headerLength;
     }
 
     public boolean isResponse() {

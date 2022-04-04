@@ -9,14 +9,12 @@ import java.util.concurrent.ConcurrentHashMap;
 import java.util.stream.Collectors;
 
 public class SpiLoader {
-    public static final SpiLoader DEFAULT = new SpiLoader();
-
     private static final String POSITION = "META-INF/service/";
 
-    public Map<Load<Object>, List<Loader<Object>>> loadCache = new ConcurrentHashMap<>(32);
+    public static final Map<Load<Object>, List<Loader<Object>>> LOAD_CACHE = new ConcurrentHashMap<>(32);
 
 
-    public <T> T load(Class<T> clazz, String name) {
+    public static <T> T load(Class<T> clazz, String name) {
         List<Loader<Object>> loaderList = load(clazz);
         for (Loader<Object> loader : loaderList) {
             if (Objects.equals(loader.getSpiDescribe().name(), name)) {
@@ -26,7 +24,7 @@ public class SpiLoader {
         throw new SpiException("spi load fail");
     }
 
-    public <T> T load(Class<T> clazz, String name, Class[] parameterTypes, Object[] args) {
+    public static <T> T load(Class<T> clazz, String name, Class[] parameterTypes, Object[] args) {
         List<Loader<Object>> loaderList = load(clazz, parameterTypes, args);
         for (Loader<Object> loader : loaderList) {
             if (Objects.equals(loader.getSpiDescribe().name(), name)) {
@@ -36,7 +34,7 @@ public class SpiLoader {
         throw new SpiException("spi load fail");
     }
 
-    public <T> T load(Class<T> clazz, int code) {
+    public static <T> T load(Class<T> clazz, int code) {
         List<Loader<Object>> loaderList = load(clazz);
         for (Loader<Object> loader : loaderList) {
             if (Objects.equals(loader.getSpiDescribe().code(), code)) {
@@ -46,7 +44,7 @@ public class SpiLoader {
         throw new SpiException("spi load fail");
     }
 
-    public <T> T load(Class<T> clazz, int code, Class[] parameterTypes, Object[] args) {
+    public static <T> T load(Class<T> clazz, int code, Class[] parameterTypes, Object[] args) {
         List<Loader<Object>> loaderList = load(clazz, parameterTypes, args);
         for (Loader<Object> loader : loaderList) {
             if (Objects.equals(loader.getSpiDescribe().code(), code)) {
@@ -56,23 +54,23 @@ public class SpiLoader {
         throw new SpiException("spi load fail");
     }
 
-    public <T> List<T> loadAll(Class<T> clazz) {
+    public static <T> List<T> loadAll(Class<T> clazz) {
         return (List<T>) load(clazz).stream().map(Loader::getLoader).collect(Collectors.toList());
     }
 
-    public <T> List<T> loadAll(Class<T> clazz, Class[] parameterTypes, Object[] args) {
+    public static <T> List<T> loadAll(Class<T> clazz, Class[] parameterTypes, Object[] args) {
         return (List<T>) load(clazz, parameterTypes, args).stream().map(Loader::getLoader).collect(Collectors.toList());
     }
 
-    private List<Loader<Object>> load(Class clazz) {
+    private static List<Loader<Object>> load(Class clazz) {
         return load(clazz, new Class[]{}, new Object[]{});
     }
 
-    private List<Loader<Object>> load(Class clazz, Class[] parameterTypes, Object[] args) {
-        return loadCache.computeIfAbsent(new Load(clazz, parameterTypes, args), load -> doLoad(clazz, parameterTypes, args));
+    private static List<Loader<Object>> load(Class clazz, Class[] parameterTypes, Object[] args) {
+        return LOAD_CACHE.computeIfAbsent(new Load(clazz, parameterTypes, args), load -> doLoad(clazz, parameterTypes, args));
     }
 
-    private List<Loader<Object>> doLoad(Class clazz, Class[] parameterTypes, Object[] args) {
+    private static List<Loader<Object>> doLoad(Class clazz, Class[] parameterTypes, Object[] args) {
         List<Loader<Object>> loaderList = new LinkedList<>();
         try {
             String sourceName = POSITION + clazz.getName();
