@@ -1,7 +1,7 @@
 package com.hongcha.remote.core;
 
 
-import com.hongcha.remote.common.RequestCommon;
+import com.hongcha.remote.common.Message;
 import com.hongcha.remote.core.bootstrap.RemoteClientBootStrap;
 import com.hongcha.remote.core.config.RemoteConfig;
 import com.hongcha.remote.core.generator.AtomicIntegerIDGenerator;
@@ -50,28 +50,28 @@ public class RemoteClient extends AbstractRemote<RemoteClientBootStrap> {
         return idGenerator;
     }
 
-    public <T> T send(String host, int port, RequestCommon requestCommon, Class<T> clazz) throws InterruptedException, ExecutionException, TimeoutException {
-        return send(getChannel(host, port), requestCommon, clazz);
+    public <T> T send(String host, int port, Message message, Class<T> clazz) throws InterruptedException, ExecutionException, TimeoutException {
+        return send(getChannel(host, port), message, clazz);
     }
 
-    public <T> T send(String host, int port, RequestCommon requestCommon, Class<T> clazz, long timeout, TimeUnit timeUnit) throws InterruptedException, ExecutionException, TimeoutException {
-        return send(getChannel(host, port), requestCommon, clazz, timeout, timeUnit);
+    public <T> T send(String host, int port, Message message, Class<T> clazz, long timeout, TimeUnit timeUnit) throws InterruptedException, ExecutionException, TimeoutException {
+        return send(getChannel(host, port), message, clazz, timeout, timeUnit);
     }
 
-    public <T> T send(SocketAddress socketAddress, RequestCommon requestCommon, Class<T> clazz) throws InterruptedException, ExecutionException, TimeoutException {
-        return send(getChannel(socketAddress), requestCommon, clazz);
+    public <T> T send(SocketAddress socketAddress, Message message, Class<T> clazz) throws InterruptedException, ExecutionException, TimeoutException {
+        return send(getChannel(socketAddress), message, clazz);
     }
 
-    public <T> T send(SocketAddress socketAddress, RequestCommon requestCommon, Class<T> clazz, long timeout, TimeUnit timeUnit) throws InterruptedException, ExecutionException, TimeoutException {
-        return send(getChannel(socketAddress), requestCommon, clazz, timeout, timeUnit);
+    public <T> T send(SocketAddress socketAddress, Message message, Class<T> clazz, long timeout, TimeUnit timeUnit) throws InterruptedException, ExecutionException, TimeoutException {
+        return send(getChannel(socketAddress), message, clazz, timeout, timeUnit);
     }
 
-    public CompletableFuture<RequestCommon> send(String host, int port, RequestCommon requestCommon) throws InterruptedException, ExecutionException {
-        return asyncSend(getChannel(host, port), requestCommon).getFuture();
+    public CompletableFuture<Message> send(String host, int port, Message message) throws InterruptedException, ExecutionException {
+        return asyncSend(getChannel(host, port), message).getRespFuture();
     }
 
-    public CompletableFuture<RequestCommon> send(SocketAddress socketAddress, RequestCommon requestCommon) throws InterruptedException, ExecutionException {
-        return asyncSend(getChannel(socketAddress), requestCommon).getFuture();
+    public CompletableFuture<Message> send(SocketAddress socketAddress, Message message) throws InterruptedException, ExecutionException {
+        return asyncSend(getChannel(socketAddress), message).getRespFuture();
     }
 
     private Channel getChannel(String host, int port) throws InterruptedException {

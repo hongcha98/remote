@@ -9,24 +9,24 @@ public class MessageFuture {
     /**
      * 请求的内容
      */
-    private RequestCommon requestCommon;
+    private Message message;
     /**
-     * 返回的内容 未来式
+     * 返回的内容 未来式, 也可能不返回
      */
-    private CompletableFuture<RequestCommon> future;
+    private CompletableFuture<Message> respFuture;
 
 
-    public MessageFuture(RequestCommon requestCommon) {
-        this.requestCommon = requestCommon;
-        this.future = new CompletableFuture<>();
+    public MessageFuture(Message message) {
+        this.message = message;
+        this.respFuture = new CompletableFuture<>();
     }
 
-    public RequestCommon getRequestCommon() {
-        return requestCommon;
+    public Message getMessage() {
+        return message;
     }
 
-    public CompletableFuture<RequestCommon> getFuture() {
-        return future;
+    public CompletableFuture<Message> getRespFuture() {
+        return respFuture;
     }
 
     @Override
@@ -34,11 +34,11 @@ public class MessageFuture {
         if (this == o) return true;
         if (o == null || getClass() != o.getClass()) return false;
         MessageFuture that = (MessageFuture) o;
-        return Objects.equals(requestCommon, that.requestCommon) && Objects.equals(future, that.future);
+        return Objects.equals(message, that.message) && Objects.equals(respFuture, that.respFuture);
     }
 
     @Override
     public int hashCode() {
-        return Objects.hash(requestCommon, future);
+        return Objects.hash(message, respFuture);
     }
 }

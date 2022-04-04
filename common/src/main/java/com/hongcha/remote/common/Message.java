@@ -7,11 +7,10 @@ import java.util.Map;
  * length id code  protocol direction headerLength  headers body
  */
 
-public class RequestCommon {
+public class Message {
     /**
-     * 固定占位符的长度（除heraders和body)
+     * 固定占位符的长度（除headers和 body)
      */
-
     public static final int FIXED_PLACEHOLDER_LENGTH = 4 + 4 + 1 + 1 + 4;
     /**
      * 信息id

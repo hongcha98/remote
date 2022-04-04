@@ -1,7 +1,7 @@
 package com.hongcha.remote.core;
 
 
-import com.hongcha.remote.common.RequestCommon;
+import com.hongcha.remote.common.Message;
 import com.hongcha.remote.common.spi.SpiLoader;
 import com.hongcha.remote.protocol.Protocol;
 import io.netty.buffer.ByteBuf;
@@ -23,7 +23,7 @@ public class Decoder extends LengthFieldBasedFrameDecoder {
         Object decode = super.decode(ctx, in);
         if (decode instanceof ByteBuf) {
             ByteBuf buf = (ByteBuf) decode;
-            int count = RequestCommon.FIXED_PLACEHOLDER_LENGTH;
+            int count = Message.FIXED_PLACEHOLDER_LENGTH;
             int length = buf.readInt();
             int id = buf.readInt();
             int code = buf.readInt();
@@ -40,15 +40,15 @@ public class Decoder extends LengthFieldBasedFrameDecoder {
             int bodyLength = length - count;
             byte[] body = new byte[bodyLength];
             buf.readBytes(body);
-            RequestCommon requestCommon = new RequestCommon();
-            requestCommon.setId(id);
-            requestCommon.setCode(code);
-            requestCommon.setProtocol(protocol);
-            requestCommon.setDirection(direction);
-            requestCommon.setHeaders(headers);
-            requestCommon.setBody(body);
+            Message message = new Message();
+            message.setId(id);
+            message.setCode(code);
+            message.setProtocol(protocol);
+            message.setDirection(direction);
+            message.setHeaders(headers);
+            message.setBody(body);
             buf.release();
-            return requestCommon;
+            return message;
         }
         return null;
     }

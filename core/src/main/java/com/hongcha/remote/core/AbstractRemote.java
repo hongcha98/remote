@@ -3,11 +3,11 @@ package com.hongcha.remote.core;
 import com.hongcha.remote.common.LifeCycle;
 import com.hongcha.remote.common.MessageFuture;
 import com.hongcha.remote.common.Pair;
-import com.hongcha.remote.common.RequestCommon;
+import com.hongcha.remote.common.Message;
 import com.hongcha.remote.common.constant.RemoteConstant;
 import com.hongcha.remote.common.exception.RemoteException;
 import com.hongcha.remote.common.exception.RemoteExceptionBody;
-import com.hongcha.remote.common.process.RequestProcess;
+import com.hongcha.remote.common.process.Process;
 import com.hongcha.remote.common.spi.SpiLoader;
 import com.hongcha.remote.core.bootstrap.AbstractBootStrap;
 import com.hongcha.remote.core.config.RemoteConfig;
@@ -25,7 +25,7 @@ import java.util.concurrent.*;
 
 
 public abstract class AbstractRemote<T extends AbstractBootStrap> implements LifeCycle {
-    protected final Map<Integer, Pair<RequestProcess, ExecutorService>> codeProcessMap = new HashMap<>();
+    protected final Map<Integer, Pair<Process, ExecutorService>> codeProcessMap = new HashMap<>();
 
     protected final Map<Integer, MessageFuture> futureMap = new ConcurrentHashMap<>();
 
@@ -52,13 +52,13 @@ public abstract class AbstractRemote<T extends AbstractBootStrap> implements Lif
         return config;
     }
 
-    public void registerProcess(int code, RequestProcess requestProcess, ExecutorService executorService) {
-        codeProcessMap.put(code, new Pair(requestProcess, executorService));
+    public void registerProcess(int code, Process process, ExecutorService executorService) {
+        codeProcessMap.put(code, new Pair(process, executorService));
     }
 
 
-    public RequestCommon buildRequest(Object msg, int code) {
-        RequestCommon request = new RequestCommon();
+    public Message buildRequest(Object msg, int code) {
+        Message request = new Message();
         request.setId(getIDGenerator().nextId());
         request.setCode(code);
         request.setProtocol((byte) 1);
@@ -67,8 +67,8 @@ public abstract class AbstractRemote<T extends AbstractBootStrap> implements Lif
         return request;
     }
 
-    public RequestCommon buildResponse(RequestCommon request, Object msg, int code) {
-        RequestCommon response = new RequestCommon();
+    public Message buildResponse(Message request, Object msg, int code) {
+        Message response = new Message();
         response.setId(request.getId());
         response.setCode(code);
         response.setProtocol(request.getProtocol());
@@ -79,15 +79,15 @@ public abstract class AbstractRemote<T extends AbstractBootStrap> implements Lif
 
     protected abstract IDGenerator getIDGenerator();
 
-    public <T> T send(Channel channel, RequestCommon requestCommon, Class<T> clazz) throws ExecutionException, InterruptedException, TimeoutException {
-        return send(channel, requestCommon, clazz, getConfig().getTimeOut(), TimeUnit.MILLISECONDS);
+    public <T> T send(Channel channel, Message message, Class<T> clazz) throws ExecutionException, InterruptedException, TimeoutException {
+        return send(channel, message, clazz, getConfig().getTimeOut(), TimeUnit.MILLISECONDS);
     }
 
     /**
      * 同步发送，并等待响应
      *
      * @param channel
-     * @param requestCommon
+     * @param message
      * @param clazz
      * @param timeOut
      * @param timeUnit
@@ -97,41 +97,41 @@ public abstract class AbstractRemote<T extends AbstractBootStrap> implements Lif
      * @throws InterruptedException
      * @throws TimeoutException
      */
-    public <T> T send(Channel channel, RequestCommon requestCommon, Class<T> clazz, long timeOut, TimeUnit timeUnit) throws ExecutionException, InterruptedException, TimeoutException {
-        return ProtocolUtils.decode(asyncSend(channel, requestCommon).getFuture().get(timeOut, timeUnit), clazz);
+    public <T> T send(Channel channel, Message message, Class<T> clazz, long timeOut, TimeUnit timeUnit) throws ExecutionException, InterruptedException, TimeoutException {
+        return ProtocolUtils.decode(asyncSend(channel, message).getRespFuture().get(timeOut, timeUnit), clazz);
     }
 
-    public MessageFuture asyncSend(Channel channel, RequestCommon requestCommon) throws ExecutionException, InterruptedException {
-        MessageFuture messageFuture = new MessageFuture(requestCommon);
-        futureMap.put(requestCommon.getId(), messageFuture);
-        ChannelFuture channelFuture = channel.writeAndFlush(requestCommon);
+    public MessageFuture asyncSend(Channel channel, Message message) throws ExecutionException, InterruptedException {
+        MessageFuture messageFuture = new MessageFuture(message);
+        futureMap.put(message.getId(), messageFuture);
+        ChannelFuture channelFuture = channel.writeAndFlush(message);
         channelFuture.addListener((future -> {
             if (!future.isSuccess()) {
-                futureMap.remove(requestCommon.getId());
-                messageFuture.getFuture().completeExceptionally(channelFuture.cause());
+                futureMap.remove(message.getId());
+                messageFuture.getRespFuture().completeExceptionally(channelFuture.cause());
             }
         }));
         return messageFuture;
     }
 
-    protected void doProcess(ChannelHandlerContext ctx, RequestCommon req) {
+    protected void doProcess(ChannelHandlerContext ctx, Message req) {
         preProcess(ctx, req);
-        Pair<RequestProcess, ExecutorService> requestProcessEventLoopGroupPair = codeProcessMap.get(req.getCode());
+        Pair<Process, ExecutorService> requestProcessEventLoopGroupPair = codeProcessMap.get(req.getCode());
         if (requestProcessEventLoopGroupPair != null) {
-            RequestProcess requestProcess = requestProcessEventLoopGroupPair.getKey();
+            Process process = requestProcessEventLoopGroupPair.getKey();
             ExecutorService eventLoopGroup = requestProcessEventLoopGroupPair.getValue();
             eventLoopGroup.execute(() -> {
-                requestProcess.process(ctx, req);
+                process.process(ctx, req);
             });
         }
     }
 
-    protected void preProcess(ChannelHandlerContext ctx, RequestCommon msg) {
+    protected void preProcess(ChannelHandlerContext ctx, Message msg) {
         if (msg.isResponse()) {
             MessageFuture messageFuture = futureMap.remove(msg.getId());
             if (messageFuture != null) {
                 boolean isSuccess = msg.getCode() != RemoteConstant.ERROR_CODE;
-                CompletableFuture<RequestCommon> future = messageFuture.getFuture();
+                CompletableFuture<Message> future = messageFuture.getRespFuture();
                 if (isSuccess) {
                     future.complete(msg);
                 } else {
@@ -143,9 +143,9 @@ public abstract class AbstractRemote<T extends AbstractBootStrap> implements Lif
     }
 
 
-    protected abstract class AbstractHandler extends SimpleChannelInboundHandler<RequestCommon> {
+    protected abstract class AbstractHandler extends SimpleChannelInboundHandler<Message> {
         @Override
-        protected void channelRead0(ChannelHandlerContext ctx, RequestCommon msg) throws Exception {
+        protected void channelRead0(ChannelHandlerContext ctx, Message msg) throws Exception {
             doProcess(ctx, msg);
         }
     }
