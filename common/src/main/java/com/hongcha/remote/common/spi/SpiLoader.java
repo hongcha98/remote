@@ -77,14 +77,18 @@ public class SpiLoader {
             Enumeration<URL> urls = clazz.getClassLoader().getResources(sourceName);
             while (urls.hasMoreElements()) {
                 try (BufferedReader reader = new BufferedReader(new InputStreamReader(urls.nextElement().openStream()))) {
-                    String clazzName = reader.readLine();
-                    Class<?> clazzImpl = Class.forName(clazzName);
-                    SpiDescribe spiDescribe = clazzImpl.getDeclaredAnnotation(SpiDescribe.class);
-                    if (spiDescribe == null) {
-                        throw new RuntimeException(clazzName + " no callout SpiDescribe");
+                    String clazzName;
+                    while ((clazzName = reader.readLine()) != null) {
+                        if (clazzName.trim().isEmpty()) continue;
+                        Class<?> clazzImpl = Class.forName(clazzName);
+                        SpiDescribe spiDescribe = clazzImpl.getDeclaredAnnotation(SpiDescribe.class);
+                        if (spiDescribe == null) {
+                            throw new RuntimeException(clazzName + " no callout SpiDescribe");
+                        }
+                        Constructor<?> constructor = clazzImpl.getDeclaredConstructor(parameterTypes);
+                        loaderList.add(new Loader<>(spiDescribe, constructor.newInstance(args)));
                     }
-                    Constructor<?> constructor = clazzImpl.getDeclaredConstructor(parameterTypes);
-                    loaderList.add(new Loader<>(spiDescribe, constructor.newInstance(args)));
+
                 }
             }
         } catch (Exception e) {
