@@ -139,7 +139,7 @@ public abstract class AbstractRemote<T extends AbstractBootStrap> implements Lif
                 if (isSuccess) {
                     future.complete(msg);
                 } else {
-                    future.completeExceptionally(new RemoteException(SpiLoader.load(Protocol.class, msg.getCode()).decode(msg.getBody(), RemoteExceptionBody.class)));
+                    future.completeExceptionally(new RemoteException(SpiLoader.load(Protocol.class, msg.getProtocol()).decode(msg.getBody(), RemoteExceptionBody.class)));
                 }
             }
         }
