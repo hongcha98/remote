@@ -1,9 +1,9 @@
 package com.hongcha.remote.core;
 
 import com.hongcha.remote.common.LifeCycle;
+import com.hongcha.remote.common.Message;
 import com.hongcha.remote.common.MessageFuture;
 import com.hongcha.remote.common.Pair;
-import com.hongcha.remote.common.Message;
 import com.hongcha.remote.common.constant.RemoteConstant;
 import com.hongcha.remote.common.exception.RemoteException;
 import com.hongcha.remote.common.exception.RemoteExceptionBody;
@@ -65,6 +65,10 @@ public abstract class AbstractRemote<T extends AbstractBootStrap> implements Lif
         request.setBody(SpiLoader.load(Protocol.class, request.getProtocol()).encode(msg));
         request.setDirection(false);
         return request;
+    }
+
+    public Message buildResponse(Message request, Object msg) {
+        return buildResponse(request, msg, request.getCode());
     }
 
     public Message buildResponse(Message request, Object msg, int code) {
