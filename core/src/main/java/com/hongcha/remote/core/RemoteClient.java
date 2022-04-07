@@ -82,7 +82,7 @@ public class RemoteClient extends AbstractRemote<RemoteClientBootStrap> {
         return remoteClientBootStrap.connect(socketAddress);
     }
 
-
+    @ChannelHandler.Sharable
     public class ClientHandler extends AbstractHandler {
 
     }
