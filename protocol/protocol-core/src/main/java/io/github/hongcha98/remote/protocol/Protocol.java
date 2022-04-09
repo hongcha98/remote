@@ -5,8 +5,6 @@ package io.github.hongcha98.remote.protocol;
  * message的协议
  */
 public interface Protocol {
-    byte DEFAULT = 2;
-
     /**
      * 对象序列化
      * 可能会抛出

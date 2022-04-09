@@ -1,8 +1,8 @@
 package io.github.hongcha98.remote.core;
 
 
-import io.github.hongcha98.remote.core.config.RemoteConfig;
 import io.github.hongcha98.remote.core.bootstrap.RemoteServerBootStrap;
+import io.github.hongcha98.remote.core.config.RemoteConfig;
 import io.github.hongcha98.remote.core.generator.AtomicIntegerIDGenerator;
 import io.github.hongcha98.remote.core.generator.IDGenerator;
 import io.netty.channel.ChannelHandler;
@@ -19,7 +19,7 @@ public class RemoteServer extends AbstractRemote<RemoteServerBootStrap> {
     }
 
     @Override
-    public void start() throws Exception {
+    public void start() {
         RemoteServerBootStrap = new RemoteServerBootStrap(getConfig()) {
             @Override
             public ChannelHandler[] getHandlerArray() {

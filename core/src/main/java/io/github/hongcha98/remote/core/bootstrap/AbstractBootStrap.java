@@ -2,7 +2,6 @@ package io.github.hongcha98.remote.core.bootstrap;
 
 
 import io.github.hongcha98.remote.common.LifeCycle;
-import io.github.hongcha98.remote.common.constant.Status;
 import io.github.hongcha98.remote.core.Decoder;
 import io.github.hongcha98.remote.core.Encoder;
 import io.github.hongcha98.remote.core.config.RemoteConfig;
@@ -10,9 +9,11 @@ import io.netty.channel.Channel;
 import io.netty.channel.ChannelHandler;
 import io.netty.channel.ChannelInitializer;
 
+import java.util.concurrent.atomic.AtomicBoolean;
+
 
 public abstract class AbstractBootStrap implements LifeCycle {
-    protected Status status = Status.CREATE;
+    protected AtomicBoolean status = new AtomicBoolean(false);
 
     protected RemoteConfig config;
 
@@ -20,7 +21,7 @@ public abstract class AbstractBootStrap implements LifeCycle {
         this.config = config;
     }
 
-    public Status getStatus() {
+    public AtomicBoolean getStatus() {
         return status;
     }
 
@@ -49,40 +50,32 @@ public abstract class AbstractBootStrap implements LifeCycle {
     }
 
     @Override
-    public void start() throws Exception {
-        synchronized (this) {
-            switch (status) {
-                case CREATE:
-                    doStart();
-                    this.status = Status.START;
-                    break;
-                case START:
-
-                case STOP:
-
-                default:
-                    throw new RuntimeException(this.getClass().getSimpleName() + " STATUS : " + status.name());
+    public void start() {
+        if (status.compareAndSet(false, true)) {
+            try {
+                doStart();
+            } catch (Exception e) {
+                status.set(false);
+                throw new RuntimeException(e);
             }
+        } else {
+            throw new RuntimeException("has been activated");
         }
     }
 
     protected abstract void doStart() throws Exception;
 
     @Override
-    public void close() throws Exception {
-        synchronized (this) {
-            switch (status) {
-                case CREATE:
-
-                case START:
-                    doClose();
-                    this.status = Status.STOP;
-                    break;
-                case STOP:
-
-                default:
-                    throw new RuntimeException(this.getClass().getSimpleName() + " STATUS : " + status.name());
+    public void close() {
+        if (status.compareAndSet(true, false)) {
+            try {
+                doClose();
+            } catch (Exception e) {
+                status.set(true);
+                throw new RuntimeException(e);
             }
+        } else {
+            throw new RuntimeException("it has been closed");
         }
     }
 

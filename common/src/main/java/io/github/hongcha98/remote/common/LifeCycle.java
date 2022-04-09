@@ -6,15 +6,11 @@ package io.github.hongcha98.remote.common;
 public interface LifeCycle {
     /**
      * 启动
-     *
-     * @throws Exception
      */
-    void start() throws Exception;
+    void start();
 
     /**
      * 关闭
-     *
-     * @throws Exception
      */
-    void close() throws Exception;
+    void close();
 }

@@ -1,6 +1,7 @@
 package io.github.hongcha98.remote.core.bootstrap;
 
 
+import io.github.hongcha98.remote.common.exception.RemoteException;
 import io.github.hongcha98.remote.core.config.RemoteConfig;
 import io.netty.bootstrap.Bootstrap;
 import io.netty.channel.Channel;
@@ -25,9 +26,8 @@ public class RemoteClientBootStrap extends AbstractBootStrap {
         super(config);
     }
 
-
     @Override
-    public void doStart() throws Exception {
+    public void doStart() {
         bootstrap = new Bootstrap();
 
         boos = new NioEventLoopGroup(config.getWorkThreadNum());
@@ -39,17 +39,17 @@ public class RemoteClientBootStrap extends AbstractBootStrap {
     }
 
     @Override
-    public void doClose() throws Exception {
+    public void doClose() {
         boos.shutdownGracefully();
     }
 
 
-    public Channel connect(String host, int port) throws InterruptedException {
+    public Channel connect(String host, int port) {
         return connect(InetSocketAddress.createUnresolved(host, port));
     }
 
 
-    public Channel connect(SocketAddress address) throws InterruptedException {
+    public Channel connect(SocketAddress address) {
         Channel channel = socketAddressChannelMap.get(address);
         if (channel == null || (channel != null && !channel.isActive())) {
             synchronized (this) {
@@ -65,13 +65,15 @@ public class RemoteClientBootStrap extends AbstractBootStrap {
     }
 
 
-    private Channel doConnect(SocketAddress remoteAddress) throws InterruptedException {
-        ChannelFuture connectFuture = bootstrap.connect(remoteAddress).sync();
-        if (!connectFuture.isSuccess()) {
-            throw new RuntimeException("connect error ", connectFuture.cause());
+    private Channel doConnect(SocketAddress remoteAddress) {
+        try {
+            ChannelFuture connectFuture = bootstrap.connect(remoteAddress).sync();
+            if (!connectFuture.isSuccess()) {
+                throw new RemoteException(connectFuture.cause());
+            }
+            return connectFuture.channel();
+        } catch (Exception e) {
+            throw new RemoteException(e);
         }
-        return connectFuture.channel();
     }
-
-
 }

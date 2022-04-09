@@ -29,6 +29,8 @@ public abstract class AbstractRemote<T extends AbstractBootStrap> implements Lif
 
     protected final Map<Integer, MessageFuture> futureMap = new ConcurrentHashMap<>();
 
+    protected final ScheduledExecutorService scheduledExecutorService = new ScheduledThreadPoolExecutor(1);
+
     private final RemoteConfig config;
 
     protected AbstractRemote(RemoteConfig config) {
@@ -36,12 +38,23 @@ public abstract class AbstractRemote<T extends AbstractBootStrap> implements Lif
     }
 
     @Override
-    public void start() throws Exception {
+    public void start() {
         getBootStrap().start();
+        scheduledExecutorService.scheduleAtFixedRate(() -> futureTimeOut(), 1000, 1000, TimeUnit.MILLISECONDS);
+    }
+
+    protected void futureTimeOut() {
+        futureMap.forEach((id, message) -> {
+            if (message.isTimeOut()) {
+                message.getRespFuture().completeExceptionally(new TimeoutException("time limit exceeded"));
+                futureMap.remove(id);
+            }
+        });
     }
 
     @Override
-    public void close() throws Exception {
+    public void close() {
+        scheduledExecutorService.shutdown();
         getBootStrap().close();
     }
 
@@ -56,7 +69,7 @@ public abstract class AbstractRemote<T extends AbstractBootStrap> implements Lif
     }
 
     public Message buildRequest(Object msg, int code) {
-        return buildRequest(msg, code, Protocol.DEFAULT);
+        return buildRequest(msg, code, RemoteConstant.DEFAULT_PROTOCOL);
     }
 
     public Message buildRequest(Object msg, int code, byte protocol) {
@@ -64,7 +77,7 @@ public abstract class AbstractRemote<T extends AbstractBootStrap> implements Lif
         request.setId(getIDGenerator().nextId());
         request.setCode(code);
         request.setProtocol(protocol);
-        request.setBody(SpiLoader.load(Protocol.class, request.getProtocol()).encode(msg));
+        request.setBody(SpiLoader.load(Protocol.class, protocol).encode(msg));
         request.setDirection(false);
         return request;
     }
@@ -89,19 +102,23 @@ public abstract class AbstractRemote<T extends AbstractBootStrap> implements Lif
 
     protected abstract IDGenerator getIDGenerator();
 
-    public <T> T send(Channel channel, Message message, Class<T> clazz) throws ExecutionException, InterruptedException, TimeoutException {
+    public <T> T send(Channel channel, Message message, Class<T> clazz) {
         return send(channel, message, clazz, getConfig().getTimeOut(), TimeUnit.MILLISECONDS);
     }
 
     /**
      * 同步发送，并等待响应
      */
-    public <T> T send(Channel channel, Message message, Class<T> clazz, long timeOut, TimeUnit timeUnit) throws ExecutionException, InterruptedException, TimeoutException {
-        return ProtocolUtils.decode(asyncSend(channel, message).getRespFuture().get(timeOut, timeUnit), clazz);
+    public <T> T send(Channel channel, Message message, Class<T> clazz, long timeOut, TimeUnit timeUnit) {
+        try {
+            return ProtocolUtils.decode(asyncSend(channel, message).getRespFuture().get(timeOut, timeUnit), clazz);
+        } catch (Exception e) {
+            throw new RemoteException(e);
+        }
     }
 
-    public MessageFuture asyncSend(Channel channel, Message message) throws ExecutionException, InterruptedException {
-        MessageFuture messageFuture = new MessageFuture(message);
+    public MessageFuture asyncSend(Channel channel, Message message) {
+        MessageFuture messageFuture = new MessageFuture(message, getConfig().getTimeOut(), TimeUnit.MILLISECONDS);
         futureMap.put(message.getId(), messageFuture);
         ChannelFuture channelFuture = channel.writeAndFlush(message);
         channelFuture.addListener((future -> {
@@ -112,6 +129,7 @@ public abstract class AbstractRemote<T extends AbstractBootStrap> implements Lif
         }));
         return messageFuture;
     }
+
 
     protected void doProcess(ChannelHandlerContext ctx, Message req) {
         processResp(ctx, req);
@@ -138,7 +156,6 @@ public abstract class AbstractRemote<T extends AbstractBootStrap> implements Lif
                 }
             }
         }
-
     }
 
     protected abstract class AbstractHandler extends SimpleChannelInboundHandler<Message> {

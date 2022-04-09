@@ -37,7 +37,7 @@ public class RemoteServerBootStrap extends AbstractBootStrap {
     }
 
     @Override
-    public void doClose() throws Exception {
+    public void doClose() {
         boos.shutdownGracefully();
         work.shutdownGracefully();
     }
